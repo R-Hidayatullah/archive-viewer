@@ -1,0 +1,13 @@
+{
+  "dependencies": [
+    "directxtex",
+    "glfw3",
+    "glm",
+    "libjpeg-turbo",
+    "libogg",
+    "libpng",
+    "libvorbis",
+    "libwebp",
+    "mpg123"
+  ]
+}
