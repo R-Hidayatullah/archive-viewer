@@ -398,3 +398,16 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Ignore Visual Studio files
+.vs/
+
+# Ignore build output
+out/
+build/
+vcpkg_installed/
+
+# Ignore all .dat files and imgui configuration
+*.dat
+*.ini
+
