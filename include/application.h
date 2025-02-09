@@ -89,42 +89,6 @@ struct WindowData {
 constexpr ImVec4 CLEAR_COLOR(0.45f, 0.55f, 0.60f, 1.00f);
 
 
-int check_channel(uint32_t format_data)
-{
-	switch (format_data)
-	{
-	case 0x31545844: // DXT1 RGB 3 channel BC1
-		return 3;
-
-	case 0x32545844: // DXT2 RGB 3 channel BC2
-		return 3;
-
-	case 0x33545844: // DXT3 RGB 3 channel BC2
-		return 3;
-
-	case 0x34545844: // DXT4 RGB 3 channel BC2
-		return 3;
-
-	case 0x35545844: // DXT5 RGB 3 channel BC3
-		return 3;
-
-	case 0x41545844: // DXTA RGB 3 channel DXT1A
-		return 3;
-
-	case 0x4C545844: // DXTL RGB 3 channel DXT1A
-		return 3;
-
-	case 0x4E545844: // DXTN RGB 3 channel DXTn
-		return 3;
-
-	case 0x58434433: // 3DCX RG 2 channel BC5
-		return 2;
-
-	default:
-		std::cout << "Unknown format.\n";
-	}
-}
-
 // https://github.com/ocornut/imgui/issues/707
 // https://github.com/codz01
 void flat_style()
@@ -658,7 +622,6 @@ bool check_valid_image(const uint8_t* data_ptr, size_t data_size)
 
 void create_and_display_texture(const void* image_data_ptr, WindowData& window_data)
 {
-	// Create an OpenGL texture for displaying the image
 	if (window_data.image_data.texture_id == 0)
 	{
 		glGenTextures(1, &window_data.image_data.texture_id);
@@ -666,86 +629,88 @@ void create_and_display_texture(const void* image_data_ptr, WindowData& window_d
 
 	glBindTexture(GL_TEXTURE_2D, window_data.image_data.texture_id);
 
-	if (window_data.image_data.anet_image)
+	// Set default texture parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+
+	if (window_data.image_data.anet_image) // If image is compressed
 	{
-		// Handle various channel counts
-		if (window_data.image_data.format_data == 0x31545844) { // DXT1 RGB 3 channel BC1
-			glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, window_data.image_data.image_width, window_data.image_data.image_height, 0, window_data.binary_data.decompressed_image.size(), image_data_ptr);
+		GLenum internalFormat = 0;
+
+		switch (window_data.image_data.format_data)
+		{
+			// S3TC (DXT) Formats
+		case 0x41545844: internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT; break; // DXTA
+		case 0x4C545844: internalFormat = GL_COMPRESSED_RED_RGTC1; break; // DXTL
+		case 0x4E545844: internalFormat = GL_COMPRESSED_RG_RGTC2; break; // DXTN
+		case 0x31545844: internalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT; break; // DXT1
+		case 0x32545844:
+		case 0x33545844:
+		case 0x34545844: internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT; break; // DXT2, DXT3, DXT4
+		case 0x35545844: internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; break; // DXT5
+
+			// BC4/BC5 (ATI & Normal Map)
+		case 0x55344342: internalFormat = GL_COMPRESSED_RED_RGTC1; break; // BC4 (ATI1)
+		case 0x55354342: internalFormat = GL_COMPRESSED_RG_RGTC2; break; // BC5 (ATI2)
+
+			// BC6H (HDR) & BC7
+		case 0x48364342: internalFormat = GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB; break; // BC6H (HDR)
+		case 0x55374342: internalFormat = GL_COMPRESSED_RGBA_BPTC_UNORM_ARB; break; // BC7
+
+			// 3Dc (ATI compression)
+		case 0x58434433: internalFormat = GL_COMPRESSED_RG_RGTC2; break; // 3Dc (BC5 variant)
+
+			// Luminance & Alpha (Legacy)
+		case 0x00000061: internalFormat = GL_ALPHA; break; // A8
+		case 0x0000006C: internalFormat = GL_LUMINANCE; break; // L8
+		case 0x00000067: internalFormat = GL_LUMINANCE_ALPHA; break; // LA8
+
+			// Depth Formats
+		case 0x44535030: internalFormat = GL_DEPTH_COMPONENT16; break; // D16
+		case 0x44535031: internalFormat = GL_DEPTH_COMPONENT24; break; // D24
+		case 0x44535032: internalFormat = GL_DEPTH_COMPONENT32; break; // D32
+
+		default:
+			printf("Unsupported compressed format: %X\n", window_data.image_data.format_data);
+			return;
 		}
 
-		if (window_data.image_data.format_data == 0x32545844) { // DXT2 RGB 3 channel BC2
-			glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, window_data.image_data.image_width, window_data.image_data.image_height, 0, window_data.binary_data.decompressed_image.size(), image_data_ptr);
-		}
+		glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat,
+			window_data.image_data.image_width, window_data.image_data.image_height, 0,
+			window_data.binary_data.decompressed_image.size(), image_data_ptr);
 
-		if (window_data.image_data.format_data == 0x33545844) { // DXT3 RGB 3 channel BC2
-			glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, window_data.image_data.image_width, window_data.image_data.image_height, 0, window_data.binary_data.decompressed_image.size(), image_data_ptr);
-		}
-
-		if (window_data.image_data.format_data == 0x34545844) { // DXT4 RGB 3 channel BC2
-			glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, window_data.image_data.image_width, window_data.image_data.image_height, 0, window_data.binary_data.decompressed_image.size(), image_data_ptr);
-		}
-
-		if (window_data.image_data.format_data == 0x35545844) { // DXT5 RGB 3 channel BC3
-			glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, window_data.image_data.image_width, window_data.image_data.image_height, 0, window_data.binary_data.decompressed_image.size(), image_data_ptr);
-		}
-
-		if (window_data.image_data.format_data == 0x41545844) { // DXTA RGB 3 channel DXT1A
-			glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, window_data.image_data.image_width, window_data.image_data.image_height, 0, window_data.binary_data.decompressed_image.size(), image_data_ptr);
-		}
-
-		if (window_data.image_data.format_data == 0x4C545844) { // DXTL RGB 3 channel DXT1A
-			glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, window_data.image_data.image_width, window_data.image_data.image_height, 0, window_data.binary_data.decompressed_image.size(), image_data_ptr);
-		}
-
-		if (window_data.image_data.format_data == 0x4E545844) { // DXTN RGB 3 channel DXTn
-			glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, window_data.image_data.image_width, window_data.image_data.image_height, 0, window_data.binary_data.decompressed_image.size(), image_data_ptr);
-		}
-
-		if (window_data.image_data.format_data == 0x58434433) { // 3DCX RG 2 channel BC5
-			glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, window_data.image_data.image_width, window_data.image_data.image_height, 0, window_data.binary_data.decompressed_image.size(), image_data_ptr);
-		}
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		glGenerateMipmap(GL_TEXTURE_2D);
-
+		//glGenerateMipmap(GL_TEXTURE_2D);
 	}
-	else {
-		// Handle various channel counts
-		if (window_data.image_data.image_channel == 4) // RGBA
+	else // Uncompressed formats (RGB, RGBA, Grayscale)
+	{
+		GLenum format = GL_RGBA;
+		GLenum internalFormat = GL_RGBA8; // Default to 8-bit RGBA
+
+		switch (window_data.image_data.image_channel)
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, window_data.image_data.image_width, window_data.image_data.image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data_ptr);
-		}
-		else if (window_data.image_data.image_channel == 3) // RGB
-		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, window_data.image_data.image_width, window_data.image_data.image_height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data_ptr);
-		}
-		else if (window_data.image_data.image_channel == 2) // Grayscale + Alpha (LA)
-		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, window_data.image_data.image_width, window_data.image_data.image_height, 0, GL_RG, GL_UNSIGNED_BYTE, image_data_ptr);
-		}
-		else if (window_data.image_data.image_channel == 1) // Grayscale
-		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, window_data.image_data.image_width, window_data.image_data.image_height, 0, GL_RED, GL_UNSIGNED_BYTE, image_data_ptr);
-		}
-		else
-		{
-			// Unsupported channel count, handle error or fallback
+		case 4: format = GL_RGBA; internalFormat = GL_RGBA8; break;  // RGBA 8-bit
+		case 3: format = GL_RGB; internalFormat = GL_RGB8; break;    // RGB 8-bit
+		case 2: format = GL_RG; internalFormat = GL_RG8; break;      // Grayscale + Alpha
+		case 1: format = GL_RED; internalFormat = GL_R8; break;      // Grayscale
+		default:
 			printf("Unsupported image channel count: %d\n", window_data.image_data.image_channel);
 			return;
 		}
-		// Set texture filtering
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat,
+			window_data.image_data.image_width, window_data.image_data.image_height, 0,
+			format, GL_UNSIGNED_BYTE, image_data_ptr);
 	}
 
-
-
-	// Display the texture in ImGui
-	ImGui::Image((ImTextureID)window_data.image_data.texture_id, ImVec2(window_data.image_data.image_width, window_data.image_data.image_height));
+	// Display texture in ImGui
+	ImGui::Image((ImTextureID)window_data.image_data.texture_id,
+		ImVec2(window_data.image_data.image_width, window_data.image_data.image_height));
 }
+
+
 
 void display_image_png(Gw2Dat& data_gw2, WindowData& window_data)
 {
@@ -866,7 +831,7 @@ void display_image_ATEX(Gw2Dat& data_gw2, WindowData& window_data) {
 
 	window_data.image_data.image_width = window_data.anet_image.width;
 	window_data.image_data.image_height = window_data.anet_image.height;
-	window_data.image_data.image_channel = check_channel(window_data.anet_image.format); // ATEX is RGBA
+	window_data.image_data.image_channel = 0; 
 	window_data.image_data.anet_image = true;
 	window_data.image_data.format_data = window_data.anet_image.format;
 
@@ -878,7 +843,7 @@ void display_image_ATEU(Gw2Dat& data_gw2, WindowData& window_data) {
 
 	window_data.image_data.image_width = window_data.anet_image.width;
 	window_data.image_data.image_height = window_data.anet_image.height;
-	window_data.image_data.image_channel = check_channel(window_data.anet_image.format); // ATEX is RGBA
+	window_data.image_data.image_channel = 0; 
 	window_data.image_data.anet_image = true;
 	window_data.image_data.format_data = window_data.anet_image.format;
 
@@ -890,7 +855,7 @@ void display_image_ATEP(Gw2Dat& data_gw2, WindowData& window_data) {
 
 	window_data.image_data.image_width = window_data.anet_image.width;
 	window_data.image_data.image_height = window_data.anet_image.height;
-	window_data.image_data.image_channel = check_channel(window_data.anet_image.format); // ATEX is RGBA
+	window_data.image_data.image_channel = 0; 
 	window_data.image_data.anet_image = true;
 	window_data.image_data.format_data = window_data.anet_image.format;
 

@@ -18,7 +18,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(include)
-include_directories(external/glad33coreext/include)
+include_directories(external/glad33compat/include)
 include_directories(external/imgui-docking)
 include_directories(external/imgui-docking/backends)
 include_directories(external/bink2/include)
@@ -33,7 +33,7 @@ find_package(glm CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(mpg123 CONFIG REQUIRED)
 
-add_subdirectory(external/glad33coreext)
+add_subdirectory(external/glad33compat)
 
 
 set(GW2DAT_SOURCES
