@@ -16,7 +16,7 @@ int main() {
 		window_data.dat_data.search_number = 0;
 		window_data.dat_data.temp_number = 0;
 		window_data.dat_data.show_by_base_id = true;
-		window_data.dat_data.selected_base_id = 1;
+		window_data.dat_data.selected_base_id = 16;
 		window_data.dat_data.selected_file_id = 0;
 		window_data.dat_data.last_selected_video_decompressed = 0;
 		window_data.dat_data.last_selected_image_decompressed = 0;
