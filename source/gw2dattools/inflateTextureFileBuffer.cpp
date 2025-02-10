@@ -709,6 +709,8 @@ namespace gw2dt
 				{
 					decode_bptc_unorm(state_data,alpha_bitmap_data,color_bitmap_data,full_format_data,output_data);
 				}
+
+
 				uint32_t loop_index_data;
 
 				if (state_data.bits >= 32)
@@ -817,7 +819,9 @@ namespace gw2dt
 				full_format_data.pixel_blocks = ((full_format_data.width + 3) / 4) * ((full_format_data.height + 3) / 4);
 				full_format_data.bytes_pixel_blocks = (full_format_data.format.pixel_size_bits * 4 * 4) / 8;
 				full_format_data.two_component =
-					((full_format_data.format.flag_data & (texture::FF_PLAINCOMP | texture::FF_COLOR | texture::FF_ALPHA)) == (texture::FF_PLAINCOMP | texture::FF_COLOR | texture::FF_ALPHA)) || (full_format_data.format.flag_data & texture::FF_BICOLORCOMP);
+					((full_format_data.format.flag_data & (texture::FF_PLAINCOMP | texture::FF_COLOR | texture::FF_ALPHA)) == (texture::FF_PLAINCOMP | texture::FF_COLOR | texture::FF_ALPHA)) ||
+					(full_format_data.format.flag_data & texture::FF_BICOLORCOMP) ||
+					(full_format_data.format.flag_data & texture::FF_BPTC);
 
 				full_format_data.bytes_component = full_format_data.bytes_pixel_blocks / (full_format_data.two_component ? 2 : 1);
 
@@ -890,7 +894,9 @@ namespace gw2dt
 				full_format_data.pixel_blocks = ((full_format_data.width + 3) / 4) * ((full_format_data.height + 3) / 4);
 				full_format_data.bytes_pixel_blocks = (full_format_data.format.pixel_size_bits * 4 * 4) / 8;
 				full_format_data.two_component =
-					((full_format_data.format.flag_data & (texture::FF_PLAINCOMP | texture::FF_COLOR | texture::FF_ALPHA)) == (texture::FF_PLAINCOMP | texture::FF_COLOR | texture::FF_ALPHA)) || (full_format_data.format.flag_data & texture::FF_BICOLORCOMP);
+					((full_format_data.format.flag_data & (texture::FF_PLAINCOMP | texture::FF_COLOR | texture::FF_ALPHA)) == (texture::FF_PLAINCOMP | texture::FF_COLOR | texture::FF_ALPHA)) ||
+					(full_format_data.format.flag_data & texture::FF_BICOLORCOMP) ||
+					(full_format_data.format.flag_data & texture::FF_BPTC);
 
 				full_format_data.bytes_component = full_format_data.bytes_pixel_blocks / (full_format_data.two_component ? 2 : 1);
 
