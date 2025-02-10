@@ -650,9 +650,9 @@ void create_and_display_texture(const void* image_data_ptr, WindowData& window_d
 		switch (window_data.image_data.format_data)
 		{
 			// S3TC (DXT) Formats
-		case 0x41545844: internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; break; // DXTA
-		case 0x4C545844: internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; break; // DXTL
-		case 0x4E545844: internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; break; // DXTN
+		case 0x41545844: internalFormat = GL_COMPRESSED_RED_RGTC1; break; // DXTA
+		case 0x4C545844: internalFormat = GL_COMPRESSED_RED_RGTC1; break; // DXTL
+		case 0x4E545844: internalFormat = GL_COMPRESSED_RG_RGTC2; break; // DXTN
 		case 0x31545844: internalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT; break; // DXT1
 		case 0x32545844:
 		case 0x33545844:
@@ -663,9 +663,11 @@ void create_and_display_texture(const void* image_data_ptr, WindowData& window_d
 		case 0x55344342: internalFormat = GL_COMPRESSED_RED_RGTC1; break; // BC4 (ATI1)
 		case 0x55354342: internalFormat = GL_COMPRESSED_RG_RGTC2; break; // BC5 (ATI2)
 
-			// BC6H (HDR) & BC7
-		case 0x48364342: internalFormat = GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB; break; // BC6H (HDR)
-		case 0x55374342: internalFormat = GL_COMPRESSED_RGBA_BPTC_UNORM_ARB; break; // BC7
+			// BC6H (HDR) & BC7 unsupported
+		//case 0x48364342: internalFormat = GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB; break; // BC6H (HDR)
+		//case 0x48364342: internalFormat = GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_ARB; break; // BC6H (HDR)
+		//case 0x55374342: internalFormat = GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB; break; // BC7	
+		//case 0x55374342: internalFormat = GL_COMPRESSED_RGBA_BPTC_UNORM_ARB; break; // BC7
 
 			// 3Dc (ATI compression)
 		case 0x58434433: internalFormat = GL_COMPRESSED_RG_RGTC2; break; // 3Dc (BC5 variant)
