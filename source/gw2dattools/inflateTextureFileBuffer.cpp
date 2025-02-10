@@ -705,6 +705,7 @@ namespace gw2dt
 				{
 					decode_bptc_float(state_data,alpha_bitmap_data,color_bitmap_data,full_format_data,output_data);
 				}
+
 				if (compression_flag_data & CF_DECODE_BPTC_UNORM)
 				{
 					decode_bptc_unorm(state_data,alpha_bitmap_data,color_bitmap_data,full_format_data,output_data);

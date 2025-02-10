@@ -627,6 +627,43 @@ bool check_valid_image(const uint8_t* data_ptr, size_t data_size)
 		valid_atep(data_ptr, data_size);
 }
 
+void check_image_channel(WindowData& window_data)
+{
+	switch (window_data.image_data.format_data)
+	{
+		// S3TC (DXT) Formats
+	case 0x41545844: // DXTA
+	case 0x4C545844: // DXTL
+	case 0x55344342: // BC4 (ATI1)
+		window_data.image_data.image_channel = 1; // Single-channel (Red)
+		break;
+
+	case 0x4E545844: // DXTN
+	case 0x55354342: // BC5 (ATI2)
+	case 0x58434433: // 3Dc (BC5 variant)
+		window_data.image_data.image_channel = 2; // Two-channel (RG)
+		break;
+
+	case 0x31545844: // DXT1
+	case 0x48364342: // BC6H (HDR)
+		window_data.image_data.image_channel = 3; // Three-channel (RGB)
+		break;
+
+	case 0x32545844: // DXT2
+	case 0x33545844: // DXT3
+	case 0x34545844: // DXT4
+	case 0x35545844: // DXT5
+	case 0x58374342: // BC7
+		window_data.image_data.image_channel = 4; // Four-channel (RGBA)
+		break;
+
+	default:
+		window_data.image_data.image_channel = 0; // Unknown format
+		break;
+	}
+}
+
+
 void create_and_display_texture(const void* image_data_ptr, WindowData& window_data)
 {
 	if (window_data.image_data.texture_id == 0)
@@ -642,6 +679,10 @@ void create_and_display_texture(const void* image_data_ptr, WindowData& window_d
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+	ImVec2 previewSize = ImGui::GetContentRegionAvail(); // Get available space
+
+	int texWidth = window_data.image_data.image_width;
+	int texHeight = window_data.image_data.image_height;
 
 	if (window_data.image_data.anet_image) // If image is compressed
 	{
@@ -675,13 +716,12 @@ void create_and_display_texture(const void* image_data_ptr, WindowData& window_d
 			return;
 		}
 
-		glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat,
-			window_data.image_data.image_height, window_data.image_data.image_width, 0,
-			window_data.binary_data.decompressed_image.size(), image_data_ptr);
+		// Swap width and height for compressed images
+		std::swap(texWidth, texHeight);
 
-		// Display texture in ImGui
-		ImGui::Image((ImTextureID)window_data.image_data.texture_id,
-			ImVec2(window_data.image_data.image_height, window_data.image_data.image_width));
+		glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat,
+			texWidth, texHeight, 0,
+			window_data.binary_data.decompressed_image.size(), image_data_ptr);
 	}
 	else // Uncompressed formats (RGB, RGBA, Grayscale)
 	{
@@ -700,15 +740,25 @@ void create_and_display_texture(const void* image_data_ptr, WindowData& window_d
 		}
 
 		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat,
-			window_data.image_data.image_width, window_data.image_data.image_height, 0,
+			texWidth, texHeight, 0,
 			format, GL_UNSIGNED_BYTE, image_data_ptr);
-		// Display texture in ImGui
-		ImGui::Image((ImTextureID)window_data.image_data.texture_id,
-			ImVec2(window_data.image_data.image_width, window_data.image_data.image_height));
 	}
 
+	// Maintain Aspect Ratio
+	float imageAspect = (float)texWidth / (float)texHeight;
+	float displayWidth = previewSize.x;
+	float displayHeight = displayWidth / imageAspect;
 
+	if (displayHeight > previewSize.y) // If height exceeds, adjust width
+	{
+		displayHeight = previewSize.y;
+		displayWidth = displayHeight * imageAspect;
+	}
+
+	// Display texture in ImGui
+	ImGui::Image((ImTextureID)window_data.image_data.texture_id, ImVec2(displayWidth, displayHeight));
 }
+
 
 
 
@@ -831,10 +881,11 @@ void display_image_ATEX(Gw2Dat& data_gw2, WindowData& window_data) {
 
 	window_data.image_data.image_width = window_data.anet_image.width;
 	window_data.image_data.image_height = window_data.anet_image.height;
-	window_data.image_data.image_channel = 0;
 	window_data.image_data.anet_image = true;
 	window_data.image_data.format_data = window_data.anet_image.format;
-
+	window_data.image_data.image_channel = 0;
+	check_image_channel(window_data);
+	ImGui::Text("Dimensions: %dx%d, Channels: %d", window_data.image_data.image_width, window_data.image_data.image_height, window_data.image_data.image_channel);
 	create_and_display_texture(window_data.binary_data.decompressed_image.data(), window_data);
 
 }
