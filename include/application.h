@@ -131,5 +131,11 @@ void display_selected_mft_data(Gw2Dat& data_gw2, WindowData& window_data);
 void render_right_panel(Gw2Dat& data_gw2, WindowData& window_data);
 void run_window(Gw2Dat& data_gw2, WindowData& window_data);
 bool initialize_window(Gw2Dat& data_gw2, WindowData& window_data);
+GLuint compileShader(GLenum type, const std::string& source);
+GLuint createShaderProgram();
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+void render_model(Gw2Dat& data_gw2, WindowData& window_data);
 
 #endif // !APPLICATION_H

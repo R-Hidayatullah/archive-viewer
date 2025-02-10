@@ -41,8 +41,8 @@ void render_preview_tab(Gw2Dat& data_gw2, WindowData& window_data) {
 
 	}
 
-	render_image(data_gw2, window_data);
-	render_video(data_gw2, window_data);
+	//render_image(data_gw2, window_data);
+	//render_video(data_gw2, window_data);
 	render_model(data_gw2, window_data);
 }
 

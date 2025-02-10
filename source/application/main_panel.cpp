@@ -203,6 +203,11 @@ bool initialize_window(Gw2Dat& data_gw2, WindowData& window_data) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+		glfwSetCursorPosCallback(window_data.window, mouse_callback);
+		glfwSetScrollCallback(window_data.window, scroll_callback);
+		glfwSetMouseButtonCallback(window_data.window, mouse_button_callback);
+
+
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
@@ -222,6 +227,7 @@ bool initialize_window(Gw2Dat& data_gw2, WindowData& window_data) {
 		ImGui_ImplGlfw_InitForOpenGL(window_data.window, true);
 		ImGui_ImplOpenGL3_Init("#version 130");
 
+	
 		run_window(data_gw2, window_data);
 		return true;
 	}

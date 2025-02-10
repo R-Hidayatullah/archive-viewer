@@ -46,15 +46,15 @@ int main() {
 		window_data.anet_image.height = 0;
 
 
-		//if (!load_dat_file(gw2_dat_file, "C:\\Users\\Ridwan Hidayatullah\\source\\repos\\archive-viewer\\Local.dat")) {
-		//	std::cerr << "Failed to load DAT file." << std::endl;
-		//	return 1; // Return non-zero to indicate an error
-		//}
-
-		if (!load_dat_file(gw2_dat_file, "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Guild Wars 2\\Gw2.dat")) {
+		if (!load_dat_file(gw2_dat_file, "C:\\Users\\Ridwan Hidayatullah\\source\\repos\\archive-viewer\\Local.dat")) {
 			std::cerr << "Failed to load DAT file." << std::endl;
 			return 1; // Return non-zero to indicate an error
 		}
+
+		//if (!load_dat_file(gw2_dat_file, "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Guild Wars 2\\Gw2.dat")) {
+		//	std::cerr << "Failed to load DAT file." << std::endl;
+		//	return 1; // Return non-zero to indicate an error
+		//}
 
 		initialize_window(gw2_dat_file, window_data);
 

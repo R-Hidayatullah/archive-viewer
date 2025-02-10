@@ -59,26 +59,26 @@ bool parse_mft_data(Gw2Dat& data_gw2) {
 		}
 	}
 
-	// Sort and remove duplicates in mftDataList_
-	std::sort(data_gw2.mft_data_list.begin(), data_gw2.mft_data_list.end(), [](const MftData& a, const MftData& b) {
-		return a.offset < b.offset;
-		});
+	//// Sort and remove duplicates in mftDataList_
+	//std::sort(data_gw2.mft_data_list.begin(), data_gw2.mft_data_list.end(), [](const MftData& a, const MftData& b) {
+	//	return a.offset < b.offset;
+	//	});
 
 
-	for (uint64_t i = 0; i < data_gw2.mft_data_list.size(); ++i) {
-		if (data_gw2.mft_data_list[i].size != 0) {
-			if (!data_gw2.dat_file.seekg(data_gw2.mft_data_list[i].offset + 4, std::ios::beg) || !data_gw2.dat_file) {
-				throw std::runtime_error("Failed to seek into MFT Offset.");
-			}
-			read_from_file(data_gw2.dat_file, data_gw2.mft_data_list[i].uncompressed_size);
+	//for (uint64_t i = 0; i < data_gw2.mft_data_list.size(); ++i) {
+	//	if (data_gw2.mft_data_list[i].size != 0) {
+	//		if (!data_gw2.dat_file.seekg(data_gw2.mft_data_list[i].offset + 4, std::ios::beg) || !data_gw2.dat_file) {
+	//			throw std::runtime_error("Failed to seek into MFT Offset.");
+	//		}
+	//		read_from_file(data_gw2.dat_file, data_gw2.mft_data_list[i].uncompressed_size);
 
-		}
-	}
+	//	}
+	//}
 
-	// Sort and remove duplicates in data_gw2.mft_data_list
-	std::sort(data_gw2.mft_data_list.begin(), data_gw2.mft_data_list.end(), [](const MftData& a, const MftData& b) {
-		return a.original_index < b.original_index;
-		});
+	//// Sort and remove duplicates in data_gw2.mft_data_list
+	//std::sort(data_gw2.mft_data_list.begin(), data_gw2.mft_data_list.end(), [](const MftData& a, const MftData& b) {
+	//	return a.original_index < b.original_index;
+	//	});
 
 	for (uint64_t i = 0;i < data_gw2.mft_data_list.size();i++) {
 		uint32_t uncompressed_size = data_gw2.mft_data_list[i].size;
