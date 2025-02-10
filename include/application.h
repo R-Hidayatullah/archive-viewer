@@ -9,6 +9,8 @@
 
 #include <chrono>
 #include <thread>
+#include <sstream>
+#include <iomanip>
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -202,11 +204,11 @@ void render_left_panel(Gw2Dat& data_gw2, WindowData& window_data) {
 
 	if (window_data.dat_data.show_by_base_id)
 	{
-		ImGui::Text("Base Id | File Id");
+		ImGui::Text("Base Id | Compressed | Uncompressed | File Id");
 	}
 	else
 	{
-		ImGui::Text("File Id | Base Id");
+		ImGui::Text("File Id | Compressed | Uncompressed | Base Id");
 	}
 	ImVec2 child_size = ImVec2(0, 0); // Adjust height as needed
 	ImGui::BeginChild("MFTList", child_size, true, ImGuiWindowFlags_HorizontalScrollbar);
@@ -222,6 +224,7 @@ void render_left_panel(Gw2Dat& data_gw2, WindowData& window_data) {
 				window_data.dat_data.temp_number = window_data.dat_data.search_number;
 			}
 			const auto& mft_base_data = data_gw2.mft_base_id_data_list;
+			const auto& mft_data = data_gw2.mft_data_list;
 
 			size_t total_items = window_data.dat_data.found_results.size();
 			// Use ImGuiListClipper for efficient rendering of large lists
@@ -232,21 +235,29 @@ void render_left_panel(Gw2Dat& data_gw2, WindowData& window_data) {
 			{
 				for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
 				{
+
 					uint64_t base_id = window_data.dat_data.found_results[i];
+					if (base_id == 0) continue;  // Skip this specific item its gonna error in debug variant
+
 					// Construct a unique label for each selectable item
-					std::string label = std::to_string(base_id) + " | [";
+					std::ostringstream oss;
+					oss << std::setw(8) << std::left << base_id << " | "
+						<< std::setw(8) << std::left << mft_data[base_id - 1].size << " | "
+						<< std::setw(8) << std::left << mft_data[base_id - 1].uncompressed_size << " | [";
+
 					// Loop through the file_id_ vector and add each element to the label string
 					const auto& file_id = get_by_file_id(data_gw2, base_id);
-
 					for (size_t j = 0; j < file_id.size(); ++j)
 					{
-						label += std::to_string(file_id[j]);
+						oss << std::setw(8) << std::left << file_id[j];
 						if (j != file_id.size() - 1)
 						{
-							label += ", ";
+							oss << ", ";
 						}
 					}
-					label += "]";
+					oss << "]";
+
+					std::string label = oss.str();
 
 					// Display the selectable item
 					if (ImGui::Selectable(label.c_str(), window_data.dat_data.selected_base_id == base_id))
@@ -261,6 +272,7 @@ void render_left_panel(Gw2Dat& data_gw2, WindowData& window_data) {
 						// Copy the label text to the clipboard
 						ImGui::SetClipboardText(label.c_str());
 					}
+
 				}
 			}
 
@@ -271,6 +283,8 @@ void render_left_panel(Gw2Dat& data_gw2, WindowData& window_data) {
 		{
 			// Retrieve the MFT base data
 			const auto& mft_base_data = data_gw2.mft_base_id_data_list;
+			const auto& mft_data = data_gw2.mft_data_list;
+
 			size_t total_items = mft_base_data.size();
 
 			// Ensure there are items to display
@@ -282,27 +296,36 @@ void render_left_panel(Gw2Dat& data_gw2, WindowData& window_data) {
 
 			// Use ImGuiListClipper for efficient rendering of large lists
 			ImGuiListClipper clipper;
-			clipper.Begin(static_cast<uint64_t>(total_items)); // Total number of items in the list
+			clipper.Begin(static_cast<int>(total_items)); // Total number of items in the list
 
 			while (clipper.Step())
 			{
-				for (uint64_t i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
+				for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
 				{
-					// Construct a unique label for each selectable item
-					std::string label = std::to_string(mft_base_data[i].base_id) + " | [";
+					if (mft_base_data[i].base_id == 0) continue;  // Skip this specific item its gonna error in debug variant
 
-					// Loop through the file_id_ vector and add each element to the label string
+					// Construct a unique label for each selectable item
+					std::ostringstream oss;
+					oss << std::setw(8) << std::left << mft_base_data[i].base_id << " | "
+						<< std::setw(8) << std::left << mft_data[mft_base_data[i].base_id - 1].size << " | "
+						<< std::setw(8) << std::left << mft_data[mft_base_data[i].base_id - 1].uncompressed_size << " | [";
+
+					// Loop through the file_id vector and add each element to the label string
 					const auto& file_id = mft_base_data[i].file_id;
 					for (size_t j = 0; j < file_id.size(); ++j)
 					{
-						label += std::to_string(file_id[j]);
+						oss << std::setw(8) << std::left << file_id[j];
 						if (j != file_id.size() - 1)
 						{
-							label += ", ";
+							oss << ", ";
 						}
 					}
 
-					label += "]";
+					oss << "]";
+
+					std::string label = oss.str();
+
+
 
 					// Display the selectable item
 					if (ImGui::Selectable(label.c_str(), window_data.dat_data.selected_base_id == mft_base_data[i].base_id))
@@ -317,6 +340,7 @@ void render_left_panel(Gw2Dat& data_gw2, WindowData& window_data) {
 						// Copy the label text to the clipboard
 						ImGui::SetClipboardText(label.c_str());
 					}
+
 				}
 			}
 
@@ -337,6 +361,8 @@ void render_left_panel(Gw2Dat& data_gw2, WindowData& window_data) {
 			}
 
 			size_t total_items = window_data.dat_data.found_results.size();
+			const auto& mft_data = data_gw2.mft_data_list;
+
 			// Use ImGuiListClipper for efficient rendering of large lists
 			ImGuiListClipper clipper;
 			clipper.Begin(static_cast<int>(total_items)); // Total number of items in the list
@@ -347,9 +373,14 @@ void render_left_panel(Gw2Dat& data_gw2, WindowData& window_data) {
 				{
 					uint64_t file_id = window_data.dat_data.found_results[i];
 					uint64_t base_id = static_cast<uint64_t>(get_by_base_id(data_gw2, file_id));
-
+					if (base_id == 0) continue;  // Skip this specific item its gonna error in debug variant
 					// Construct a unique label for each selectable item
-					std::string label = std::to_string(file_id) + " | " + std::to_string(base_id);
+					std::ostringstream oss;
+					oss << std::left << std::setw(8) << file_id
+						<< " | " << std::setw(8) << mft_data[base_id - 1].size
+						<< " | " << std::setw(8) << mft_data[base_id - 1].uncompressed_size
+						<< " | " << std::setw(8) << base_id;
+					std::string label = oss.str();
 
 					// Display the selectable item
 					if (ImGui::Selectable(label.c_str(), window_data.dat_data.selected_base_id == base_id))
@@ -365,6 +396,7 @@ void render_left_panel(Gw2Dat& data_gw2, WindowData& window_data) {
 						// Copy the label text to the clipboard
 						ImGui::SetClipboardText(label.c_str());
 					}
+
 				}
 			}
 
@@ -375,6 +407,7 @@ void render_left_panel(Gw2Dat& data_gw2, WindowData& window_data) {
 		{
 			// Retrieve the MFT file data
 			const auto& mft_file_data = data_gw2.mft_file_id_data_list;
+			const auto& mft_data = data_gw2.mft_data_list;
 
 			size_t total_items = mft_file_data.size();
 
@@ -393,9 +426,15 @@ void render_left_panel(Gw2Dat& data_gw2, WindowData& window_data) {
 			{
 				for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
 				{
-					// Construct a unique label for each selectable item
-					std::string label = std::to_string(mft_file_data[i].file_id) + " | " + std::to_string(mft_file_data[i].base_id);
+					if (mft_file_data[i].base_id == 0) continue;  // Skip this specific item its gonna error in debug variant
 
+					// Construct a unique label for each selectable item
+					std::ostringstream oss;
+					oss << std::left << std::setw(8) << mft_file_data[i].file_id
+						<< " | " << std::setw(8) << mft_data[mft_file_data[i].base_id - 1].size
+						<< " | " << std::setw(8) << mft_data[mft_file_data[i].base_id - 1].uncompressed_size
+						<< " | " << std::setw(8) << mft_file_data[i].base_id;
+					std::string label = oss.str();
 					// Display the selectable item
 					if (ImGui::Selectable(label.c_str(), window_data.dat_data.selected_base_id == mft_file_data[i].base_id))
 					{
@@ -410,6 +449,7 @@ void render_left_panel(Gw2Dat& data_gw2, WindowData& window_data) {
 						// Copy the label text to the clipboard
 						ImGui::SetClipboardText(label.c_str());
 					}
+
 				}
 			}
 
@@ -1105,7 +1145,7 @@ void render_preview_tab(Gw2Dat& data_gw2, WindowData& window_data) {
 		window_data.dat_data.last_selected_video_decompressed = window_data.dat_data.selected_base_id;
 	}
 
-	
+
 
 	if (window_data.dat_data.selected_base_id != window_data.dat_data.last_selected_item_decompressed)
 	{
@@ -1235,7 +1275,6 @@ void display_selected_mft_data(Gw2Dat& data_gw2, WindowData& window_data)
 	ImGui::Text("Entry Flag: %u", selected_entry.entry_flag);
 	ImGui::Text("Counter: %u", selected_entry.counter);
 	ImGui::Text("CRC: %u", selected_entry.crc);
-	ImGui::Text("Identifier: %.*s", HEADER_IDENTIFIER, selected_entry.identifier);
 	ImGui::Text("Uncompressed Size: %u bytes", selected_entry.uncompressed_size);
 
 	ImGui::Separator();
@@ -1334,8 +1373,10 @@ void run_window(Gw2Dat& data_gw2, WindowData& window_data) {
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 		window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 		window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+		window_flags |= ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse; // Disable scrolling
 
 		ImGui::Begin("DockSpace", nullptr, window_flags);
+
 		ImGui::PopStyleVar(2);
 
 		ImGuiIO& io = ImGui::GetIO();
@@ -1351,9 +1392,9 @@ void run_window(Gw2Dat& data_gw2, WindowData& window_data) {
 		render_middle_panel(data_gw2, window_data);
 		render_right_panel(data_gw2, window_data);
 
-		ImGui::Begin("Hello, ImGui!");
-		ImGui::Text("This is an example of docking.");
-		ImGui::End();
+		//ImGui::Begin("Hello, ImGui!");
+		//ImGui::Text("This is an example of docking.");
+		//ImGui::End();
 
 		ImGui::End(); // End the main window
 

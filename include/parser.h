@@ -16,7 +16,6 @@
 
 constexpr size_t MFT_MAGIC_NUMBER = 4;
 constexpr size_t ANET_IMAGE_MAGIC_NUMBER = 4;
-constexpr size_t HEADER_IDENTIFIER = 16;
 constexpr size_t DAT_MAGIC_NUMBER = 3;
 constexpr size_t MFT_ENTRY_INDEX_NUM = 1;
 constexpr size_t CHUNK_SIZE = 0x10000;
@@ -46,7 +45,6 @@ struct MftData
 	uint16_t entry_flag;
 	uint32_t counter;
 	uint32_t crc;
-	char identifier[HEADER_IDENTIFIER];
 	uint32_t uncompressed_size;
 };
 
@@ -201,6 +199,50 @@ bool parse_mft_data(Gw2Dat& data_gw2) {
 		}
 	}
 
+	// Sort and remove duplicates in mftDataList_
+	std::sort(data_gw2.mft_data_list.begin(), data_gw2.mft_data_list.end(), [](const MftData& a, const MftData& b) {
+		return a.offset < b.offset;
+		});
+
+
+	for (uint64_t i = 0; i < data_gw2.mft_data_list.size(); ++i) {
+		if (data_gw2.mft_data_list[i].size != 0) {
+			if (!data_gw2.dat_file.seekg(data_gw2.mft_data_list[i].offset + 4, std::ios::beg) || !data_gw2.dat_file) {
+				throw std::runtime_error("Failed to seek into MFT Offset.");
+			}
+			read_from_file(data_gw2.dat_file, data_gw2.mft_data_list[i].uncompressed_size);
+
+		}
+	}
+
+	// Sort and remove duplicates in data_gw2.mft_data_list
+	std::sort(data_gw2.mft_data_list.begin(), data_gw2.mft_data_list.end(), [](const MftData& a, const MftData& b) {
+		return a.original_index < b.original_index;
+		});
+
+	for (uint64_t i = 0;i < data_gw2.mft_data_list.size();i++) {
+		uint32_t uncompressed_size = data_gw2.mft_data_list[i].size;
+
+		if (data_gw2.mft_data_list[i].compression_flag == 0) {
+			if (data_gw2.mft_data_list[i].size > CHUNK_SIZE)
+			{
+				uncompressed_size = uncompressed_size - (((data_gw2.mft_data_list[i].size % CHUNK_SIZE) + 1) * 4);
+
+			}
+			else if (data_gw2.mft_data_list[i].size == CHUNK_SIZE)
+			{
+				uncompressed_size = uncompressed_size - (1 * 4);
+
+			}
+			else if (data_gw2.mft_data_list[i].size < CHUNK_SIZE) {
+				uncompressed_size = uncompressed_size - (1 * 4);
+			}
+			data_gw2.mft_data_list[i].uncompressed_size = std::move(uncompressed_size);
+		}
+
+	}
+
+
 	return true; // Return true only after the whole loop finishes successfully
 }
 
@@ -225,7 +267,6 @@ void print_mft_data(Gw2Dat& data_gw2, uint64_t index) {
 		}
 	}
 	std::cout << std::dec << "\n"
-		<< std::setw(20) << "Identifier :" << std::string(data_gw2.mft_data_list[index].identifier, data_gw2.mft_data_list[index].identifier + HEADER_IDENTIFIER) << "\n"
 		<< std::setw(20) << "Uncompressed Size :" << std::setw(10) << data_gw2.mft_data_list[index].uncompressed_size << " bytes\n"; // Reset to decimal formatting
 }
 
@@ -327,7 +368,8 @@ bool parse_dat_file(Gw2Dat& data_gw2) {
 
 
 void print_file_info(Gw2Dat& data_gw2) {
-	std::cout << "File Info\n"
+	std::cout << "File Info:\n"
+		<<"-------------------------\n"
 		<< "File path : " << data_gw2.file_info.file_path << "\n"
 		<< "File size : " << data_gw2.file_info.file_size << " bytes\n";
 }
