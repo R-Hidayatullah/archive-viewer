@@ -612,6 +612,13 @@ bool valid_atep(const uint8_t* data_ptr, size_t data_size)
 		data_ptr[2] == 'E' && data_ptr[3] == 'P'); // "ATEP"
 }
 
+bool valid_ctex(const uint8_t* data_ptr, size_t data_size)
+{
+	return (data_size >= 4 &&
+		data_ptr[0] == 'C' && data_ptr[1] == 'T' &&
+		data_ptr[2] == 'E' && data_ptr[3] == 'X'); // "CTEX"
+}
+
 bool check_valid_image(const uint8_t* data_ptr, size_t data_size)
 {
 	return valid_png(data_ptr, data_size) || valid_jpeg(data_ptr, data_size) ||
@@ -643,9 +650,9 @@ void create_and_display_texture(const void* image_data_ptr, WindowData& window_d
 		switch (window_data.image_data.format_data)
 		{
 			// S3TC (DXT) Formats
-		case 0x41545844: internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT; break; // DXTA
-		case 0x4C545844: internalFormat = GL_COMPRESSED_RED_RGTC1; break; // DXTL
-		case 0x4E545844: internalFormat = GL_COMPRESSED_RG_RGTC2; break; // DXTN
+		case 0x41545844: internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; break; // DXTA
+		case 0x4C545844: internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; break; // DXTL
+		case 0x4E545844: internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; break; // DXTN
 		case 0x31545844: internalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT; break; // DXT1
 		case 0x32545844:
 		case 0x33545844:
@@ -679,10 +686,12 @@ void create_and_display_texture(const void* image_data_ptr, WindowData& window_d
 		}
 
 		glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat,
-			window_data.image_data.image_width, window_data.image_data.image_height, 0,
+			window_data.image_data.image_height, window_data.image_data.image_width, 0,
 			window_data.binary_data.decompressed_image.size(), image_data_ptr);
 
-		//glGenerateMipmap(GL_TEXTURE_2D);
+		// Display texture in ImGui
+		ImGui::Image((ImTextureID)window_data.image_data.texture_id,
+			ImVec2(window_data.image_data.image_height, window_data.image_data.image_width));
 	}
 	else // Uncompressed formats (RGB, RGBA, Grayscale)
 	{
@@ -703,11 +712,12 @@ void create_and_display_texture(const void* image_data_ptr, WindowData& window_d
 		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat,
 			window_data.image_data.image_width, window_data.image_data.image_height, 0,
 			format, GL_UNSIGNED_BYTE, image_data_ptr);
+		// Display texture in ImGui
+		ImGui::Image((ImTextureID)window_data.image_data.texture_id,
+			ImVec2(window_data.image_data.image_width, window_data.image_data.image_height));
 	}
 
-	// Display texture in ImGui
-	ImGui::Image((ImTextureID)window_data.image_data.texture_id,
-		ImVec2(window_data.image_data.image_width, window_data.image_data.image_height));
+
 }
 
 
@@ -831,31 +841,7 @@ void display_image_ATEX(Gw2Dat& data_gw2, WindowData& window_data) {
 
 	window_data.image_data.image_width = window_data.anet_image.width;
 	window_data.image_data.image_height = window_data.anet_image.height;
-	window_data.image_data.image_channel = 0; 
-	window_data.image_data.anet_image = true;
-	window_data.image_data.format_data = window_data.anet_image.format;
-
-	create_and_display_texture(window_data.binary_data.decompressed_image.data(), window_data);
-
-}
-
-void display_image_ATEU(Gw2Dat& data_gw2, WindowData& window_data) {
-
-	window_data.image_data.image_width = window_data.anet_image.width;
-	window_data.image_data.image_height = window_data.anet_image.height;
-	window_data.image_data.image_channel = 0; 
-	window_data.image_data.anet_image = true;
-	window_data.image_data.format_data = window_data.anet_image.format;
-
-	create_and_display_texture(window_data.binary_data.decompressed_image.data(), window_data);
-
-}
-
-void display_image_ATEP(Gw2Dat& data_gw2, WindowData& window_data) {
-
-	window_data.image_data.image_width = window_data.anet_image.width;
-	window_data.image_data.image_height = window_data.anet_image.height;
-	window_data.image_data.image_channel = 0; 
+	window_data.image_data.image_channel = 0;
 	window_data.image_data.anet_image = true;
 	window_data.image_data.format_data = window_data.anet_image.format;
 
@@ -892,12 +878,16 @@ void render_image(Gw2Dat& data_gw2, WindowData& window_data)
 		}
 		else if (valid_ateu(data_ptr, data_size))
 		{
-			display_image_ATEU(data_gw2, window_data);
+			display_image_ATEX(data_gw2, window_data);
 		}
 		else if (valid_atep(data_ptr, data_size))
 		{
-			display_image_ATEP(data_gw2, window_data);
+			display_image_ATEX(data_gw2, window_data);
 		}
+		//else if (valid_ctex(data_ptr, data_size))
+		//{
+		//	display_image_ATEX(data_gw2, window_data);
+		//}
 		else
 		{
 			ImGui::Text("Unsupported image format or invalid file header.");
@@ -1072,16 +1062,7 @@ void render_preview_tab(Gw2Dat& data_gw2, WindowData& window_data) {
 		window_data.dat_data.last_selected_video_decompressed = window_data.dat_data.selected_base_id;
 	}
 
-	if (window_data.dat_data.selected_base_id != window_data.dat_data.last_selected_image_decompressed)
-	{
-		if (valid_atex(window_data.binary_data.decompressed_data.data(), window_data.binary_data.decompressed_data.size()) ||
-			valid_ateu(window_data.binary_data.decompressed_data.data(), window_data.binary_data.decompressed_data.size()) ||
-			valid_atep(window_data.binary_data.decompressed_data.data(), window_data.binary_data.decompressed_data.size()))
-		{
-			window_data.binary_data.decompressed_image = extract_decompressed_image(window_data.binary_data.decompressed_data, window_data.anet_image);
-		}
-		window_data.dat_data.last_selected_image_decompressed = window_data.dat_data.selected_base_id;
-	}
+	
 
 	if (window_data.dat_data.selected_base_id != window_data.dat_data.last_selected_item_decompressed)
 	{
@@ -1097,7 +1078,12 @@ void render_preview_tab(Gw2Dat& data_gw2, WindowData& window_data) {
 		}
 		window_data.dat_data.last_selected_item_decompressed = window_data.dat_data.selected_base_id;
 	}
-
+	if (valid_atex(window_data.binary_data.decompressed_data.data(), window_data.binary_data.decompressed_data.size()) ||
+		valid_ateu(window_data.binary_data.decompressed_data.data(), window_data.binary_data.decompressed_data.size()) ||
+		valid_atep(window_data.binary_data.decompressed_data.data(), window_data.binary_data.decompressed_data.size()))
+	{
+		window_data.binary_data.decompressed_image = extract_decompressed_image(window_data.binary_data.decompressed_data, window_data.anet_image);
+	}
 
 	render_image(data_gw2, window_data);
 	render_video(data_gw2, window_data);
