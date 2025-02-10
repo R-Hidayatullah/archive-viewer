@@ -38,6 +38,8 @@ static double lastX, lastY;
 static GLuint VAO = 0, VBO = 0, EBO = 0;
 static GLuint shaderProgram = 0;
 static GLuint FBO = 0, textureColorbuffer = 0, RBO = 0;
+bool preview_tab_active = false; // Global or pass it via WindowData
+
 
 GLuint compileShader(GLenum type, const std::string& source) {
     GLuint shader = glCreateShader(type);
@@ -83,31 +85,35 @@ GLuint createShaderProgram() {
 
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
-    if (isDragging) {
-        float dx = xpos - lastX;
-        float dy = ypos - lastY;
-        rotationX += dy * 0.5f;
-        rotationY += dx * 0.5f;
+    if (preview_tab_active) {
+
+        if (isDragging) {
+            float dx = xpos - lastX;
+            float dy = ypos - lastY;
+            rotationX += dy * 0.5f;
+            rotationY += dx * 0.5f;
+        }
+        lastX = xpos;
+        lastY = ypos;
     }
-    lastX = xpos;
-    lastY = ypos;
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    zoom -= yoffset * 0.5f;
-    if (zoom < 1.0f) zoom = 1.0f;
-    if (zoom > 10.0f) zoom = 10.0f;
-}
-
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
-    if (button == GLFW_MOUSE_BUTTON_LEFT) {
-        isDragging = (action == GLFW_PRESS);
-        glfwGetCursorPos(window, &lastX, &lastY);
+    if (preview_tab_active) {
+        zoom -= yoffset * 0.5f;
+        if (zoom < 1.0f) zoom = 1.0f;
+        if (zoom > 10.0f) zoom = 10.0f;
     }
 }
 
-
-
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    if (preview_tab_active) {
+        if (button == GLFW_MOUSE_BUTTON_LEFT) {
+            isDragging = (action == GLFW_PRESS);
+            glfwGetCursorPos(window, &lastX, &lastY);
+        }
+    }
+}
 
 void setupFramebuffer(int width, int height) {
     if (FBO == 0) {
@@ -224,4 +230,43 @@ void render_model(Gw2Dat& data_gw2, WindowData& window_data) {
     ImGui::Image((ImTextureID)textureColorbuffer, previewSize, ImVec2(0, 1), ImVec2(1, 0));
 }
 
+
+void render_middle_panel(Gw2Dat& data_gw2, WindowData& window_data)
+{
+    ImGui::Begin("Extracted Data");
+
+    if (ImGui::BeginTabBar("MFT Data Tabs"))
+    {
+        preview_tab_active = false;  // Reset flag before checking active tab
+
+        if (ImGui::BeginTabItem("Compressed"))
+        {
+            render_compressed_tab(data_gw2, window_data);
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("Decompressed"))
+        {
+            render_decompressed_tab(data_gw2, window_data);
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("Preview"))
+        {
+            if (ImGui::IsItemFocused())
+            {
+
+            if (!preview_tab_active) {
+                preview_tab_active = true;
+            }
+            }
+            render_preview_tab(data_gw2, window_data);
+            ImGui::EndTabItem();
+        }
+
+        ImGui::EndTabBar();
+    }
+
+    ImGui::End();
+}
 

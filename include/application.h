@@ -90,6 +90,7 @@ struct WindowData {
 
 constexpr ImVec4 CLEAR_COLOR(0.45f, 0.55f, 0.60f, 1.00f);
 
+
 // https://github.com/ocornut/imgui/issues/707
 // https://github.com/codz01
 void flat_style();
@@ -136,6 +137,7 @@ GLuint createShaderProgram();
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+void setupFramebuffer(int width, int height);
 void render_model(Gw2Dat& data_gw2, WindowData& window_data);
 
 #endif // !APPLICATION_H

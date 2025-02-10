@@ -1,5 +1,6 @@
 #include "application.h"
 
+
 void render_preview_tab(Gw2Dat& data_gw2, WindowData& window_data) {
 
 	// Display preview data
@@ -26,7 +27,7 @@ void render_preview_tab(Gw2Dat& data_gw2, WindowData& window_data) {
 
 		}
 		window_data.dat_data.last_selected_item_decompressed = window_data.dat_data.selected_base_id;
-	
+
 	}
 
 	if (window_data.dat_data.selected_base_id != window_data.dat_data.last_selected_image_decompressed)
@@ -46,33 +47,4 @@ void render_preview_tab(Gw2Dat& data_gw2, WindowData& window_data) {
 	render_model(data_gw2, window_data);
 }
 
-void render_middle_panel(Gw2Dat& data_gw2, WindowData& window_data)
-{
-	ImGui::Begin("Extracted Data");
-
-	if (ImGui::BeginTabBar("MFT Data Tabs"))
-	{
-		if (ImGui::BeginTabItem("Compressed"))
-		{
-			render_compressed_tab(data_gw2, window_data);
-			ImGui::EndTabItem();
-		}
-
-		if (ImGui::BeginTabItem("Decompressed"))
-		{
-			render_decompressed_tab(data_gw2, window_data);
-			ImGui::EndTabItem();
-		}
-
-		if (ImGui::BeginTabItem("Preview"))
-		{
-			render_preview_tab(data_gw2, window_data);
-			ImGui::EndTabItem();
-		}
-
-		ImGui::EndTabBar();
-	}
-
-	ImGui::End();
-}
 
