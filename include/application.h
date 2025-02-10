@@ -849,6 +849,7 @@ void display_image_webp(Gw2Dat& data_gw2, WindowData& window_data)
 		window_data.image_data.image_channel = 4; // WebP is RGBA
 		window_data.image_data.anet_image = false;
 		window_data.image_data.format_data = 0;
+		ImGui::Text("Dimensions: %dx%d, Channels: %d", window_data.image_data.image_width, window_data.image_data.image_height, window_data.image_data.image_channel);
 		create_and_display_texture(webp_data, window_data);
 		WebPFree(webp_data);
 	}
@@ -869,6 +870,7 @@ void display_image_dds(Gw2Dat& data_gw2, WindowData& window_data) {
 		window_data.image_data.image_channel = 4; // DDS textures are typically RGBA
 		window_data.image_data.anet_image = false;
 		window_data.image_data.format_data = 0;
+		ImGui::Text("Dimensions: %dx%d, Channels: %d", window_data.image_data.image_width, window_data.image_data.image_height, window_data.image_data.image_channel);
 		create_and_display_texture(img->pixels, window_data);
 	}
 	else {
@@ -885,7 +887,7 @@ void display_image_ATEX(Gw2Dat& data_gw2, WindowData& window_data) {
 	window_data.image_data.format_data = window_data.anet_image.format;
 	window_data.image_data.image_channel = 0;
 	check_image_channel(window_data);
-	ImGui::Text("Dimensions: %dx%d, Channels: %d", window_data.image_data.image_width, window_data.image_data.image_height, window_data.image_data.image_channel);
+	ImGui::Text("Dimensions: %dx%d, Channels: %d", window_data.image_data.image_height, window_data.image_data.image_width, window_data.image_data.image_channel);
 	create_and_display_texture(window_data.binary_data.decompressed_image.data(), window_data);
 
 }
