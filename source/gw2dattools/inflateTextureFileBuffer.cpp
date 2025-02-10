@@ -39,58 +39,84 @@ namespace gw2dt
 
 			enum FormatFlags
 			{
-				FF_COLOR = 0x10,
-				FF_ALPHA = 0x20,
-				FF_DEDUCEDALPHACOMP = 0x40,
-				FF_PLAINCOMP = 0x80,
-				FF_BICOLORCOMP = 0x200
+				FF_COLOR = 0x10,                 // Standard color format
+				FF_ALPHA = 0x20,                 // Has alpha channel
+				FF_DEDUCEDALPHACOMP = 0x40,      // Alpha is deduced from compression
+				FF_PLAINCOMP = 0x80,             // Plain compression (single-channel)
+				FF_BICOLORCOMP = 0x200,          // Two-channel compression (e.g., normal maps)
+				FF_HDR = 0x400,                  // High Dynamic Range (HDR) format
+				FF_BPTC = 0x800                  // BC6H/BC7 block compression
 			};
 
 			enum CompressionFlags
 			{
-				CF_DECODE_WHITE_COLOR = 0x01,
-				CF_DECODE_CONSTANT_ALPHA_FROM4BITS = 0x02,
-				CF_DECODE_CONSTANT_ALPHA_FROM8BITS = 0x04,
-				CF_DECODE_PLAIN_COLOR = 0x08
+				CF_DECODE_WHITE_COLOR = 0x01,                      // Used for decoding white color
+				CF_DECODE_CONSTANT_ALPHA_FROM4BITS = 0x02,        // Alpha from 4-bit constant
+				CF_DECODE_CONSTANT_ALPHA_FROM8BITS = 0x04,        // Alpha from 8-bit constant
+				CF_DECODE_PLAIN_COLOR = 0x08,                     // Plain color decoding
+				CF_DECODE_BPTC_FLOAT = 0x10,                      // For BC6H (HDR) float decoding
+				CF_DECODE_BPTC_UNORM = 0x20                       // For BC7 normalized decoding
 			};
+
 
 			// Static Values
 			HuffmanTree huffman_tree_dict;
-			Format format_data[9];
+			Format format_data[11];
 			bool static_values_initialized(false);
 
 			void initialize_static_values()
 			{
 				// Formats
 				{
+					// DXT1 (S3TC - BC1)
 					Format& format_dxt1_data = format_data[0];
 					format_dxt1_data.flag_data = FF_COLOR | FF_ALPHA | FF_DEDUCEDALPHACOMP;
 					format_dxt1_data.pixel_size_bits = 4;
 
+					// DXT2, DXT3, DXT4 (S3TC - BC2)
 					Format& format_dxt2_data = format_data[1];
 					format_dxt2_data.flag_data = FF_COLOR | FF_ALPHA | FF_PLAINCOMP;
 					format_dxt2_data.pixel_size_bits = 8;
 
-					format_data[2] = format_data[1];
-					format_data[3] = format_data[1];
-					format_data[4] = format_data[1];
+					format_data[2] = format_data[1]; // DXT3 (same as DXT2)
+					format_data[3] = format_data[1]; // DXT4 (same as DXT2)
 
+					// DXT5 (S3TC - BC3)
+					Format& format_dxt5_data = format_data[4];
+					format_dxt5_data.flag_data = FF_COLOR | FF_ALPHA | FF_PLAINCOMP;
+					format_dxt5_data.pixel_size_bits = 8;
+
+					// DXTA (BC4 - ATI1, single-channel)
 					Format& format_dxt_a_data = format_data[5];
 					format_dxt_a_data.flag_data = FF_ALPHA | FF_PLAINCOMP;
 					format_dxt_a_data.pixel_size_bits = 4;
 
+					// DXTL (BC4 - ATI1, single-channel grayscale)
 					Format& format_dxt_l_data = format_data[6];
-					format_dxt_l_data.flag_data = FF_COLOR;
-					format_dxt_l_data.pixel_size_bits = 8;
+					format_dxt_l_data.flag_data = FF_ALPHA | FF_PLAINCOMP;
+					format_dxt_l_data.pixel_size_bits = 4;
 
+					// DXTN (BC5 - ATI2, normal maps)
 					Format& format_dxt_n_data = format_data[7];
 					format_dxt_n_data.flag_data = FF_BICOLORCOMP;
 					format_dxt_n_data.pixel_size_bits = 8;
 
+					// 3Dc (BC5 variant, normal maps)
 					Format& format_3dcx_data = format_data[8];
 					format_3dcx_data.flag_data = FF_BICOLORCOMP;
 					format_3dcx_data.pixel_size_bits = 8;
+
+					// BC6H (HDR compressed)
+					Format& format_bc6h_data = format_data[9];
+					format_bc6h_data.flag_data = FF_COLOR | FF_HDR | FF_BPTC;
+					format_bc6h_data.pixel_size_bits = 8;  // BC6H uses 16-bit floats internally but compressed
+
+					// BC7 (High-quality compressed color format)
+					Format& format_bc7_data = format_data[10];
+					format_bc7_data.flag_data = FF_COLOR | FF_ALPHA | FF_BPTC;
+					format_bc7_data.pixel_size_bits = 8;
 				}
+
 
 				int16_t bits_head_data[MAX_CODE_BITS_LENGTH];
 				int16_t bits_body_data[MAX_SYMBOL_VALUE];
@@ -127,37 +153,44 @@ namespace gw2dt
 			{
 				switch (four_cc_data)
 				{
-				case 0x31545844: // DXT1
+				case 0x31545844: // "DXT1"
 					return format_data[0];
 
-				case 0x32545844: // DXT2
+				case 0x32545844: // "DXT2"
 					return format_data[1];
 
-				case 0x33545844: // DXT3
+				case 0x33545844: // "DXT3"
 					return format_data[2];
 
-				case 0x34545844: // DXT4
+				case 0x34545844: // "DXT4"
 					return format_data[3];
 
-				case 0x35545844: // DXT5
+				case 0x35545844: // "DXT5"
 					return format_data[4];
 
-				case 0x41545844: // DXTA
+				case 0x41545844: // "DXTA" (ATI1 / BC4)
 					return format_data[5];
 
-				case 0x4C545844: // DXTL
+				case 0x4C545844: // "DXTL" (Luminance BC4)
 					return format_data[6];
 
-				case 0x4E545844: // DXTN
+				case 0x4E545844: // "DXTN" (ATI2 / BC5)
 					return format_data[7];
 
-				case 0x58434433: // 3DCX
+				case 0x58434433: // "3DCX" (BC5 variant)
 					return format_data[8];
 
+				case 0x48364342: // "BC6H" (HDR format)
+					return format_data[9];
+
+				case 0x58374342: // "BC7X" (BC7)
+					return format_data[10];
+
 				default:
-					throw std::runtime_error("Unknown texture format.");
+					throw std::runtime_error("Unknown texture format: " + std::to_string(four_cc_data));
 				}
 			}
+
 
 			void decode_white_color(State& state_data, std::vector<bool>& alpha_bit_map, std::vector<bool>& color_bit_map, const FullFormat& full_format_data, uint8_t* output_data)
 			{
@@ -544,6 +577,83 @@ namespace gw2dt
 				}
 			}
 
+			void decode_bptc_float(State& state_data, std::vector<bool>& alpha_bit_map, std::vector<bool>& color_bit_map, const FullFormat& full_format_data, uint8_t* output_data)
+			{
+				uint32_t pixel_block_position = 0;
+
+				while (pixel_block_position < full_format_data.pixel_blocks)
+				{
+					// Reading next code
+					uint16_t temp_code = 0;
+					read_code(huffman_tree_dict, state_data, temp_code);
+
+					need_bits(state_data, 1);
+					uint32_t value_data = read_bits(state_data, 1);
+					drop_bits(state_data, 1);
+
+					while (temp_code > 0)
+					{
+						if (!color_bit_map[pixel_block_position])
+						{
+							if (value_data)
+							{
+								float max_float_value = 1.0f; // Adjust if necessary
+								memcpy(&(output_data[full_format_data.bytes_pixel_blocks * pixel_block_position]), &max_float_value, sizeof(float));
+
+								alpha_bit_map[pixel_block_position] = true;
+								color_bit_map[pixel_block_position] = true;
+							}
+							--temp_code;
+						}
+						++pixel_block_position;
+					}
+
+					while (pixel_block_position < full_format_data.pixel_blocks && color_bit_map[pixel_block_position])
+					{
+						++pixel_block_position;
+					}
+				}
+			}
+
+			void decode_bptc_unorm(State& state_data, std::vector<bool>& alpha_bit_map, std::vector<bool>& color_bit_map, const FullFormat& full_format_data, uint8_t* output_data)
+			{
+				uint32_t pixel_block_position = 0;
+
+				while (pixel_block_position < full_format_data.pixel_blocks)
+				{
+					// Reading next code
+					uint16_t temp_code = 0;
+					read_code(huffman_tree_dict, state_data, temp_code);
+
+					need_bits(state_data, 1);
+					uint32_t value_data = read_bits(state_data, 1);
+					drop_bits(state_data, 1);
+
+					while (temp_code > 0)
+					{
+						if (!color_bit_map[pixel_block_position])
+						{
+							if (value_data)
+							{
+								uint8_t max_unorm_value = 255; // Adjust for different bit depths
+								memset(&(output_data[full_format_data.bytes_pixel_blocks * pixel_block_position]), max_unorm_value, full_format_data.bytes_component);
+
+								alpha_bit_map[pixel_block_position] = true;
+								color_bit_map[pixel_block_position] = true;
+							}
+							--temp_code;
+						}
+						++pixel_block_position;
+					}
+
+					while (pixel_block_position < full_format_data.pixel_blocks && color_bit_map[pixel_block_position])
+					{
+						++pixel_block_position;
+					}
+				}
+			}
+
+
 			void inflate_data(State& state_data, const FullFormat& full_format_data, uint32_t output_data_size, uint8_t* output_data)
 			{
 				// Bitmaps
@@ -591,6 +701,14 @@ namespace gw2dt
 					decode_plain_color(state_data, color_bitmap_data, full_format_data, output_data);
 				}
 
+				if (compression_flag_data & CF_DECODE_BPTC_FLOAT)
+				{
+					decode_bptc_float(state_data,alpha_bitmap_data,color_bitmap_data,full_format_data,output_data);
+				}
+				if (compression_flag_data & CF_DECODE_BPTC_UNORM)
+				{
+					decode_bptc_unorm(state_data,alpha_bitmap_data,color_bitmap_data,full_format_data,output_data);
+				}
 				uint32_t loop_index_data;
 
 				if (state_data.bits >= 32)
