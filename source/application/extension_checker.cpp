@@ -58,6 +58,14 @@ bool valid_ctex(const uint8_t* data_ptr, size_t data_size)
 		data_ptr[2] == 'E' && data_ptr[3] == 'X'); // "CTEX"
 }
 
+bool valid_pf_modl(const uint8_t* data_ptr, size_t data_size)
+{
+	return (data_size >= 12 &&
+		data_ptr[0] == 'P' && data_ptr[1] == 'F' &&
+		data_ptr[8] == 'M' && data_ptr[9] == 'O' &&
+		data_ptr[10] == 'D' && data_ptr[11] == 'L'); // "PF......MODL"
+}
+
 bool check_valid_image(const uint8_t* data_ptr, size_t data_size)
 {
 	return valid_png(data_ptr, data_size) || valid_jpeg(data_ptr, data_size) ||

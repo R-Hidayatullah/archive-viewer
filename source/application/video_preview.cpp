@@ -1,10 +1,7 @@
 #include "application.h"
 
-void render_video(Gw2Dat& data_gw2, WindowData& window_data)
+void render_video(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data_ptr, size_t data_size)
 {
-	// Check file header for supported formats
-	const uint8_t* data_ptr = reinterpret_cast<const uint8_t*>(window_data.binary_data.decompressed_data.data());
-	size_t data_size = window_data.binary_data.decompressed_data.size();
 	if (valid_bink2(data_ptr, data_size))
 	{
 

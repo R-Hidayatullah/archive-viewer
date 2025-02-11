@@ -62,7 +62,7 @@ set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
 add_executable (${PROJECT_NAME}
     ${IMGUI_SOURCES}
     ${GW2DAT_SOURCES}
-    "source/archive-viewer.cpp" 
+    "source/archive_viewer.cpp" 
     "source/parser/print_info.cpp" 
     "source/parser/parse_file.cpp" 
     "source/parser/extract_data.cpp" 
@@ -74,7 +74,7 @@ add_executable (${PROJECT_NAME}
     "source/application/middle_panel.cpp" 
     "source/application/video_preview.cpp" 
     "source/application/binary_preview.cpp" 
-    "source/application/extension_checker.cpp" "source/application/model_preview.cpp")
+    "source/application/extension_checker.cpp" "source/application/model_preview.cpp" )
 
 #if (CMAKE_VERSION VERSION_GREATER 3.12)
 #  set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)

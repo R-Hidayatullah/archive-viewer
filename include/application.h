@@ -62,6 +62,23 @@ struct VideoData {
 	float actual_framerate;
 };
 
+struct RenderData {
+	float rotation_x;
+	float rotation_y;
+	float zoom;
+	bool is_dragging;
+	double last_x;
+	double last_y;
+	GLuint VAO;
+	GLuint VBO;
+	GLuint EBO;
+	GLuint shader_program;
+	GLuint FBO;
+	GLuint texture_color_buffer;
+	GLuint RBO;
+	bool preview_tab_active;
+};
+
 struct DatData {
 	int search_number;
 	int temp_number;
@@ -85,8 +102,39 @@ struct WindowData {
 	VideoData video_data;
 	ImageData image_data;
 	BinaryData binary_data;
+	bool preview_tab_active;
 	gw2dt::compression::AnetImage anet_image;
 };
+
+
+const std::string vertexShaderSource = R"(
+#version 330 core
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aColor;
+
+out vec3 vertexColor;
+
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+
+void main()
+{
+    vertexColor = aColor;
+    gl_Position = projection * view * model * vec4(aPos, 1.0);
+}
+)";
+
+const std::string fragmentShaderSource = R"(
+#version 330 core
+in vec3 vertexColor;
+out vec4 FragColor;
+
+void main()
+{
+    FragColor = vec4(vertexColor, 1.0);
+}
+)";
 
 constexpr ImVec4 CLEAR_COLOR(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -110,6 +158,7 @@ bool valid_atex(const uint8_t* data_ptr, size_t data_size);
 bool valid_ateu(const uint8_t* data_ptr, size_t data_size);
 bool valid_atep(const uint8_t* data_ptr, size_t data_size);
 bool valid_ctex(const uint8_t* data_ptr, size_t data_size);
+bool valid_pf_modl(const uint8_t* data_ptr, size_t data_size);
 bool valid_bink2(const uint8_t* data_ptr, size_t data_size);
 bool check_valid_image(const uint8_t* data_ptr, size_t data_size);
 void check_image_channel(WindowData& window_data);
@@ -119,9 +168,9 @@ void display_image_jpeg(Gw2Dat& data_gw2, WindowData& window_data);
 void display_image_webp(Gw2Dat& data_gw2, WindowData& window_data);
 void display_image_dds(Gw2Dat& data_gw2, WindowData& window_data);
 void display_image_ATEX(Gw2Dat& data_gw2, WindowData& window_data);
-void render_image(Gw2Dat& data_gw2, WindowData& window_data);
-void render_video(Gw2Dat& data_gw2, WindowData& window_data);
-void render_model(Gw2Dat& data_gw2, WindowData& window_data);
+void render_image(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data_ptr, size_t data_size);
+void render_video(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data_ptr, size_t data_size);
+void render_model(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data_ptr, size_t data_size);
 void cleanup_bink(WindowData& window_data);
 void render_preview_tab(Gw2Dat& data_gw2, WindowData& window_data);
 void render_middle_panel(Gw2Dat& data_gw2, WindowData& window_data);

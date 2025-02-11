@@ -211,8 +211,7 @@ void display_image_dds(Gw2Dat& data_gw2, WindowData& window_data) {
 	}
 }
 
-void display_image_ATEX(Gw2Dat& data_gw2, WindowData& window_data) {
-
+void display_image_atex(Gw2Dat& data_gw2, WindowData& window_data) {
 
 	window_data.image_data.image_width = window_data.anet_image.width;
 	window_data.image_data.image_height = window_data.anet_image.height;
@@ -225,12 +224,8 @@ void display_image_ATEX(Gw2Dat& data_gw2, WindowData& window_data) {
 
 }
 
-void render_image(Gw2Dat& data_gw2, WindowData& window_data)
+void render_image(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data_ptr, size_t data_size)
 {
-
-	// Check file header for supported formats
-	const uint8_t* data_ptr = reinterpret_cast<const uint8_t*>(window_data.binary_data.decompressed_data.data());
-	size_t data_size = window_data.binary_data.decompressed_data.size();
 
 	if (check_valid_image(data_ptr, data_size))
 	{
@@ -248,21 +243,13 @@ void render_image(Gw2Dat& data_gw2, WindowData& window_data)
 		else if (valid_dds(data_ptr, data_size)) {
 			display_image_dds(data_gw2, window_data);
 		}
-		else if (valid_atex(data_ptr, data_size))
+		else if (valid_atex(data_ptr, data_size) || valid_ateu(data_ptr, data_size) || valid_atep(data_ptr, data_size))
 		{
-			display_image_ATEX(data_gw2, window_data);
-		}
-		else if (valid_ateu(data_ptr, data_size))
-		{
-			display_image_ATEX(data_gw2, window_data);
-		}
-		else if (valid_atep(data_ptr, data_size))
-		{
-			display_image_ATEX(data_gw2, window_data);
+			display_image_atex(data_gw2, window_data);
 		}
 		//else if (valid_ctex(data_ptr, data_size))
 		//{
-		//	display_image_ATEX(data_gw2, window_data);
+		//	display_image_atex(data_gw2, window_data);
 		//}
 		else
 		{
