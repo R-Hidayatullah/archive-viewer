@@ -26,7 +26,14 @@ void render_video(WindowData& window_data, const uint8_t* data_ptr, size_t data_
 		// Use DirectSound for Bink (MUST BE BEFORE BinkOpen)
 		BinkSoundUseDirectSound(window_data.video_data.direct_sound);
 
-		window_data.video_data.bink_handler = BinkOpen(reinterpret_cast<const char*>(window_data.binary_data.decompressed_data.data()), BINKFROMMEMORY | BINKALPHA | BINKYCRCBNEW | BINKSNDTRACK);
+		window_data.video_data.bink_handler = BinkOpen(reinterpret_cast<const char*>(window_data.binary_data.decompressed_data.data()), 
+			BINKFROMMEMORY | 
+			BINKALPHA | 
+			BINKYCRCBNEW | 
+			BINKSNDTRACK | 
+			BINKUSETRIPLEBUFFERING | 
+			BINKPRELOADALL);
+		
 		if (!window_data.video_data.bink_handler)
 		{
 			std::cerr << "Failed to open Bink video." << std::endl;
