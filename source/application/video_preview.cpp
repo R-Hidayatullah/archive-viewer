@@ -50,12 +50,21 @@ void render_video(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data
 		ImGui::Text("Volume Control");
 		ImGui::SliderInt("Volume", &window_data.video_data.volume, 0, 100);
 
+
+		if (ImGui::Button("Reset"))
+		{
+			if (window_data.video_data.bink_handler)
+			{
+				BinkGoto(window_data.video_data.bink_handler, 0, 0); // Seek to the first frame
+				window_data.video_data.is_playing = false; // Start playing from the beginning
+			}
+		}
+		
 		// Play/Pause button
 		if (ImGui::Button(window_data.video_data.is_playing ? "Pause" : "Play"))
 		{
 			window_data.video_data.is_playing = !window_data.video_data.is_playing;
 		}
-
 
 		// Get the available space for the video in the Preview tab
 		ImVec2 previewSize = ImGui::GetContentRegionAvail();
