@@ -10,22 +10,22 @@ void render_video(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data
 
 		if (!window_data.video_data.bink_handler)
 		{
-			HRESULT hr = DirectSoundCreate(NULL, &window_data.video_data.lpDS, NULL);
+			HRESULT hr = DirectSoundCreate(NULL, &window_data.video_data.direct_sound, NULL);
 			if (FAILED(hr)) {
 				printf("Failed to initialize DirectSound.\n");
 				return;
 			}
 
 			// Set cooperative level (needed for DirectSound)
-			hr = window_data.video_data.lpDS->SetCooperativeLevel(GetDesktopWindow(), DSSCL_PRIORITY);
+			hr = window_data.video_data.direct_sound->SetCooperativeLevel(GetDesktopWindow(), DSSCL_PRIORITY);
 			if (FAILED(hr)) {
 				printf("Failed to set DirectSound cooperative level.\n");
-				window_data.video_data.lpDS->Release();
+				window_data.video_data.direct_sound->Release();
 				return;
 			}
 
 			// Use DirectSound for Bink (MUST BE BEFORE BinkOpen)
-			BinkSoundUseDirectSound(window_data.video_data.lpDS);
+			BinkSoundUseDirectSound(window_data.video_data.direct_sound);
 
 			window_data.video_data.bink_handler = BinkOpen(reinterpret_cast<const char*>(window_data.binary_data.decompressed_data.data()), BINKFROMMEMORY | BINKALPHA | BINKYCRCBNEW | BINKSNDTRACK);
 			if (!window_data.video_data.bink_handler)
@@ -182,7 +182,7 @@ void cleanup_bink(WindowData& window_data)
 	{
 		BinkClose(window_data.video_data.bink_handler); // Close the Bink handler
 		window_data.video_data.bink_handler = nullptr;
-		window_data.video_data.lpDS->Release();
+		window_data.video_data.direct_sound->Release();
 	}
 	window_data.video_data.is_playing = false;
 	window_data.video_data.actual_framerate = 0.0f;

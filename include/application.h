@@ -41,76 +41,72 @@ struct BinaryData {
 };
 
 struct ImageData {
-	unsigned char* image_data;
-	GLuint texture_id;
-	int image_width;
-	int image_height;
-	int image_channel;
-	bool anet_image;
-	uint32_t format_data;
-
+	unsigned char* image_data = nullptr;
+	GLuint texture_id = 0;
+	int image_width = 0;
+	int image_height = 0;
+	int image_channel = 0;
+	bool anet_image = false;
+	uint32_t format_data = 0;
 };
 
 struct VideoData {
-	HBINK bink_handler;
-	GLuint video_texture;
-	bool is_playing;
-	bool first_frame;
-	float current_time;
-	float total_time;
-	float seek_time;
-	float last_frametime;
-	float actual_framerate;
-	LPDIRECTSOUND lpDS;
-	int volume;
+	HBINK bink_handler = nullptr;
+	GLuint video_texture = 0;
+	bool is_playing = false;
+	bool first_frame = true;
+	float current_time = 0.0f;
+	float total_time = 0.0f;
+	float seek_time = 0.0f;
+	float last_frametime = 0.0f;
+	float actual_framerate = 0.0f;
+	LPDIRECTSOUND direct_sound = NULL;
+	int volume = 100;
 };
 
 struct RenderData {
-	float rotation_x;
-	float rotation_y;
-	float zoom;
-	bool is_dragging;
-	double last_x;
-	double last_y;
-	GLuint VAO;
-	GLuint VBO;
-	GLuint EBO;
-	GLuint shader_program;
-	GLuint FBO;
-	GLuint texture_color_buffer;
-	GLuint RBO;
-	bool preview_tab_active;
+	float rotation_x = 0.0f;
+	float rotation_y = 0.0f;
+	float zoom = 1.0f;
+	bool is_dragging = false;
+	double last_x = 0.0;
+	double last_y = 0.0;
+	GLuint VAO = 0;
+	GLuint VBO = 0;
+	GLuint EBO = 0;
+	GLuint shader_program = 0;
+	GLuint FBO = 0;
+	GLuint texture_color_buffer = 0;
+	GLuint RBO = 0;
+	bool preview_tab_active = false;
 };
 
 struct DatData {
-	int search_number;
-	int temp_number;
-	uint64_t selected_base_id;
-	uint64_t selected_file_id;
-	bool show_by_base_id;
-	std::vector<uint32_t> found_results;
-	float status_message_timer;
-	std::string status_message;
-	uint64_t last_selected_item_compressed;
-	uint64_t last_selected_item_decompressed;
-	uint64_t last_selected_video_decompressed;
-	uint64_t last_selected_image_decompressed;
+	int search_number = 0;
+	int temp_number = 0;
+	uint64_t selected_base_id = 16;
+	uint64_t selected_file_id = 0;
+	bool show_by_base_id = true;
+	std::vector<uint32_t> found_results = {};
+	float status_message_timer = 5.0f;
+	std::string status_message = "";
+	uint64_t last_selected_item_compressed = 0;
+	uint64_t last_selected_item_decompressed = 0;
+	uint64_t last_selected_video_decompressed = 0;
+	uint64_t last_selected_image_decompressed = 0;
 };
 
 struct WindowData {
-	GLFWwindow* window;
-	std::string window_title;
-	ImGuiDockNodeFlags dockspace_flags;
-	DatData dat_data;
-	VideoData video_data;
-	ImageData image_data;
-	BinaryData binary_data;
-	bool preview_tab_active;
-	gw2dt::compression::AnetImage anet_image;
+	GLFWwindow* window = nullptr;
+	std::string window_title = "Default Window";
+	ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+	DatData dat_data = {};
+	VideoData video_data = {};
+	ImageData image_data = {};
+	BinaryData binary_data = {};
+	bool preview_tab_active = false;
+	gw2dt::compression::AnetImage anet_image = {};
 };
-
-
-
 
 const std::string vertexShaderSource = R"(
 #version 330 core
