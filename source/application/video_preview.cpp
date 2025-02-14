@@ -45,13 +45,15 @@ void render_video(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		}
 
-		ImGui::Text("Loaded Bink: %d x %d @ %.2f FPS | Frames: %d/%d | Sound: %s",
+		ImGui::Text("Loaded Bink: %d x %d @ %.2f FPS | Frames: %d/%d | Sound: %s | Soundtracks: %d | Using: %d",
 			window_data.video_data.bink_handler->Width,
 			window_data.video_data.bink_handler->Height,
 			(float)window_data.video_data.bink_handler->FrameRate / window_data.video_data.bink_handler->FrameRateDiv,
 			window_data.video_data.bink_handler->FrameNum,
 			window_data.video_data.bink_handler->Frames,
-			window_data.video_data.bink_handler->soundon ? "Enabled" : "Disabled"
+			window_data.video_data.bink_handler->soundon ? "Enabled" : "Disabled",
+			window_data.video_data.bink_handler->NumTracks,  // Total soundtracks
+			window_data.video_data.bink_handler->playingtracks  // Currently used track
 		);
 
 
