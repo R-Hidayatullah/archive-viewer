@@ -105,95 +105,94 @@ void setupFramebuffer(int width, int height) {
 }
 
 void render_model(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data_ptr, size_t data_size) {
-	if (valid_pf_modl(data_ptr, data_size)) {
 
-		temp_render_data.preview_tab_active = window_data.preview_tab_active;
+	temp_render_data.preview_tab_active = window_data.preview_tab_active;
 
-		// Get panel size
-		ImVec2 previewSize = ImGui::GetContentRegionAvail();
-		int width = static_cast<int>(previewSize.x);
-		int height = static_cast<int>(previewSize.y);
+	// Get panel size
+	ImVec2 previewSize = ImGui::GetContentRegionAvail();
+	int width = static_cast<int>(previewSize.x);
+	int height = static_cast<int>(previewSize.y);
 
-		// Ensure framebuffer is set up with correct size
-		setupFramebuffer(width, height);
+	// Ensure framebuffer is set up with correct size
+	setupFramebuffer(width, height);
 
-		// Bind framebuffer
-		glBindFramebuffer(GL_FRAMEBUFFER, temp_render_data.FBO);
-		glViewport(0, 0, width, height);
-		glEnable(GL_DEPTH_TEST);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// Bind framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, temp_render_data.FBO);
+	glViewport(0, 0, width, height);
+	glEnable(GL_DEPTH_TEST);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		if (temp_render_data.shader_program == 0) {
-			temp_render_data.shader_program = createShaderProgram();
-		}
-
-		if (temp_render_data.VAO == 0) {
-			float vertices[] = {
-				// Positions         // Colors
-				-1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, // 0
-				 1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f, // 1
-				 1.0f,  1.0f, -1.0f, 0.0f, 0.0f, 1.0f, // 2
-				-1.0f,  1.0f, -1.0f, 1.0f, 1.0f, 0.0f, // 3
-				-1.0f, -1.0f,  1.0f, 1.0f, 0.0f, 1.0f, // 4
-				 1.0f, -1.0f,  1.0f, 0.0f, 1.0f, 1.0f, // 5
-				 1.0f,  1.0f,  1.0f, 1.0f, 1.0f, 1.0f, // 6
-				-1.0f,  1.0f,  1.0f, 0.0f, 0.0f, 0.0f  // 7
-			};
-
-			unsigned int indices[] = {
-				0, 1, 2, 2, 3, 0, // Front
-				1, 5, 6, 6, 2, 1, // Right
-				5, 4, 7, 7, 6, 5, // Back
-				4, 0, 3, 3, 7, 4, // Left
-				3, 2, 6, 6, 7, 3, // Top
-				4, 5, 1, 1, 0, 4  // Bottom
-			};
-
-			glGenVertexArrays(1, &temp_render_data.VAO);
-			glGenBuffers(1, &temp_render_data.VBO);
-			glGenBuffers(1, &temp_render_data.EBO);
-
-			glBindVertexArray(temp_render_data.VAO);
-			glBindBuffer(GL_ARRAY_BUFFER, temp_render_data.VBO);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, temp_render_data.EBO);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-			glEnableVertexAttribArray(0);
-
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-			glEnableVertexAttribArray(1);
-		}
-
-		// Setup camera matrices
-		float aspectRatio = (float)width / (float)height;
-		glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
-		glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, temp_render_data.zoom), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::rotate(model, glm::radians(temp_render_data.rotation_x), glm::vec3(1.0f, 0.0f, 0.0f));
-		model = glm::rotate(model, glm::radians(temp_render_data.rotation_y), glm::vec3(0.0f, 1.0f, 0.0f));
-
-		glUseProgram(temp_render_data.shader_program);
-
-		GLint modelLoc = glGetUniformLocation(temp_render_data.shader_program, "model");
-		GLint viewLoc = glGetUniformLocation(temp_render_data.shader_program, "view");
-		GLint projLoc = glGetUniformLocation(temp_render_data.shader_program, "projection");
-
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, &model[0][0]);
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
-		glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection[0][0]);
-
-		// Render cube
-		glBindVertexArray(temp_render_data.VAO);
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind framebuffer
-
-		// Draw ImGui Panel
-		ImGui::Image((ImTextureID)temp_render_data.texture_color_buffer, previewSize, ImVec2(0, 1), ImVec2(1, 0));
+	if (temp_render_data.shader_program == 0) {
+		temp_render_data.shader_program = createShaderProgram();
 	}
+
+	if (temp_render_data.VAO == 0) {
+		float vertices[] = {
+			// Positions         // Colors
+			-1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, // 0
+			 1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f, // 1
+			 1.0f,  1.0f, -1.0f, 0.0f, 0.0f, 1.0f, // 2
+			-1.0f,  1.0f, -1.0f, 1.0f, 1.0f, 0.0f, // 3
+			-1.0f, -1.0f,  1.0f, 1.0f, 0.0f, 1.0f, // 4
+			 1.0f, -1.0f,  1.0f, 0.0f, 1.0f, 1.0f, // 5
+			 1.0f,  1.0f,  1.0f, 1.0f, 1.0f, 1.0f, // 6
+			-1.0f,  1.0f,  1.0f, 0.0f, 0.0f, 0.0f  // 7
+		};
+
+		unsigned int indices[] = {
+			0, 1, 2, 2, 3, 0, // Front
+			1, 5, 6, 6, 2, 1, // Right
+			5, 4, 7, 7, 6, 5, // Back
+			4, 0, 3, 3, 7, 4, // Left
+			3, 2, 6, 6, 7, 3, // Top
+			4, 5, 1, 1, 0, 4  // Bottom
+		};
+
+		glGenVertexArrays(1, &temp_render_data.VAO);
+		glGenBuffers(1, &temp_render_data.VBO);
+		glGenBuffers(1, &temp_render_data.EBO);
+
+		glBindVertexArray(temp_render_data.VAO);
+		glBindBuffer(GL_ARRAY_BUFFER, temp_render_data.VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, temp_render_data.EBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(1);
+	}
+
+	// Setup camera matrices
+	float aspectRatio = (float)width / (float)height;
+	glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
+	glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, temp_render_data.zoom), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat4 model = glm::mat4(1.0f);
+	model = glm::rotate(model, glm::radians(temp_render_data.rotation_x), glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(temp_render_data.rotation_y), glm::vec3(0.0f, 1.0f, 0.0f));
+
+	glUseProgram(temp_render_data.shader_program);
+
+	GLint modelLoc = glGetUniformLocation(temp_render_data.shader_program, "model");
+	GLint viewLoc = glGetUniformLocation(temp_render_data.shader_program, "view");
+	GLint projLoc = glGetUniformLocation(temp_render_data.shader_program, "projection");
+
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, &model[0][0]);
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection[0][0]);
+
+	// Render cube
+	glBindVertexArray(temp_render_data.VAO);
+	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind framebuffer
+
+	// Draw ImGui Panel
+	ImGui::Image((ImTextureID)temp_render_data.texture_color_buffer, previewSize, ImVec2(0, 1), ImVec2(1, 0));
+
 
 }
 

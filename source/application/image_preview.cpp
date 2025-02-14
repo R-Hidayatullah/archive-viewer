@@ -227,33 +227,32 @@ void display_image_atex(Gw2Dat& data_gw2, WindowData& window_data) {
 void render_image(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data_ptr, size_t data_size)
 {
 
-	if (check_valid_image(data_ptr, data_size))
+
+	if (valid_png(data_ptr, data_size))
 	{
-		if (valid_png(data_ptr, data_size))
-		{
-			display_image_png(data_gw2, window_data);
-		}
-		else if (valid_jpeg(data_ptr, data_size)) {
-			display_image_jpeg(data_gw2, window_data);
-		}
-		else if (valid_webp(data_ptr, data_size))
-		{
-			display_image_webp(data_gw2, window_data);
-		}
-		else if (valid_dds(data_ptr, data_size)) {
-			display_image_dds(data_gw2, window_data);
-		}
-		else if (valid_atex(data_ptr, data_size) || valid_ateu(data_ptr, data_size) || valid_atep(data_ptr, data_size))
-		{
-			display_image_atex(data_gw2, window_data);
-		}
-		//else if (valid_ctex(data_ptr, data_size))
-		//{
-		//	display_image_atex(data_gw2, window_data);
-		//}
-		else
-		{
-			ImGui::Text("Unsupported image format or invalid file header.");
-		}
+		display_image_png(data_gw2, window_data);
 	}
+	else if (valid_jpeg(data_ptr, data_size)) {
+		display_image_jpeg(data_gw2, window_data);
+	}
+	else if (valid_webp(data_ptr, data_size))
+	{
+		display_image_webp(data_gw2, window_data);
+	}
+	else if (valid_dds(data_ptr, data_size)) {
+		display_image_dds(data_gw2, window_data);
+	}
+	else if (valid_atex(data_ptr, data_size) || valid_ateu(data_ptr, data_size) || valid_atep(data_ptr, data_size))
+	{
+		display_image_atex(data_gw2, window_data);
+	}
+	//else if (valid_ctex(data_ptr, data_size))
+	//{
+	//	display_image_atex(data_gw2, window_data);
+	//}
+	else
+	{
+		ImGui::Text("Unsupported image format or invalid file header.");
+	}
+
 }

@@ -74,7 +74,8 @@ add_executable (${PROJECT_NAME}
     "source/application/middle_panel.cpp" 
     "source/application/video_preview.cpp" 
     "source/application/binary_preview.cpp" 
-    "source/application/extension_checker.cpp" "source/application/model_preview.cpp" )
+    "source/application/extension_checker.cpp" 
+    "source/application/model_preview.cpp" )
 
 #if (CMAKE_VERSION VERSION_GREATER 3.12)
 #  set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
