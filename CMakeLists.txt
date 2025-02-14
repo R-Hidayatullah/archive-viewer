@@ -91,6 +91,8 @@ target_link_libraries(${PROJECT_NAME}
     opengl32
     glad
     bink2w64
+    dsound 
+    dxguid
     glm::glm
     Ogg::ogg
     PNG::PNG

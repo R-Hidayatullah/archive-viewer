@@ -31,6 +31,7 @@
 #include <png.h>
 #include <jpeglib.h>
 
+#include <dsound.h>
 #include "bink_2_7d.h"
 
 struct BinaryData {
@@ -60,6 +61,8 @@ struct VideoData {
 	float seek_time;
 	float last_frametime;
 	float actual_framerate;
+	LPDIRECTSOUND lpDS;
+	int volume;
 };
 
 struct RenderData {
@@ -105,6 +108,8 @@ struct WindowData {
 	bool preview_tab_active;
 	gw2dt::compression::AnetImage anet_image;
 };
+
+
 
 
 const std::string vertexShaderSource = R"(

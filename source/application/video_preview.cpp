@@ -1,13 +1,33 @@
 #include "application.h"
 
+
+
 void render_video(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data_ptr, size_t data_size)
 {
 	if (valid_bink2(data_ptr, data_size))
 	{
 
+
 		if (!window_data.video_data.bink_handler)
 		{
-			window_data.video_data.bink_handler = BinkOpen(reinterpret_cast<const char*>(window_data.binary_data.decompressed_data.data()), BINKFROMMEMORY | BINKALPHA | BINKYCRCBNEW);
+			HRESULT hr = DirectSoundCreate(NULL, &window_data.video_data.lpDS, NULL);
+			if (FAILED(hr)) {
+				printf("Failed to initialize DirectSound.\n");
+				return;
+			}
+
+			// Set cooperative level (needed for DirectSound)
+			hr = window_data.video_data.lpDS->SetCooperativeLevel(GetDesktopWindow(), DSSCL_PRIORITY);
+			if (FAILED(hr)) {
+				printf("Failed to set DirectSound cooperative level.\n");
+				window_data.video_data.lpDS->Release();
+				return;
+			}
+
+			// Use DirectSound for Bink (MUST BE BEFORE BinkOpen)
+			BinkSoundUseDirectSound(window_data.video_data.lpDS);
+
+			window_data.video_data.bink_handler = BinkOpen(reinterpret_cast<const char*>(window_data.binary_data.decompressed_data.data()), BINKFROMMEMORY | BINKALPHA | BINKYCRCBNEW | BINKSNDTRACK);
 			if (!window_data.video_data.bink_handler)
 			{
 				std::cerr << "Failed to open Bink video." << std::endl;
@@ -19,18 +39,23 @@ void render_video(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data
 			{
 				glGenTextures(1, &window_data.video_data.video_texture);
 			}
+
 			glBindTexture(GL_TEXTURE_2D, window_data.video_data.video_texture);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		}
 
 		ImGui::Text("Loaded Bink: %d width, %d height", window_data.video_data.bink_handler->Width, window_data.video_data.bink_handler->Height);
+		// Volume control UI
+		ImGui::Text("Volume Control");
+		ImGui::SliderInt("Volume", &window_data.video_data.volume, 0, 100);
 
 		// Play/Pause button
 		if (ImGui::Button(window_data.video_data.is_playing ? "Pause" : "Play"))
 		{
 			window_data.video_data.is_playing = !window_data.video_data.is_playing;
 		}
+
 
 		// Get the available space for the video in the Preview tab
 		ImVec2 previewSize = ImGui::GetContentRegionAvail();
@@ -66,12 +91,16 @@ void render_video(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data
 		// Handle frame-by-frame or continuous playback
 		if (window_data.video_data.is_playing && window_data.video_data.bink_handler)
 		{
+			int mapped_volume = (window_data.video_data.volume * 32768) / 100;
+			BinkSetVolume(window_data.video_data.bink_handler, 0, mapped_volume);
+
 			// Wait until it's time for the next frame
 			while (BinkWait(window_data.video_data.bink_handler))
 			{
 			}
 
 			BinkDoFrame(window_data.video_data.bink_handler);
+
 			void* rgbBuffer = malloc(static_cast<size_t>(window_data.video_data.bink_handler->FrameBuffers->YABufferWidth) * window_data.video_data.bink_handler->FrameBuffers->YABufferHeight * 4);
 			if (!rgbBuffer)
 			{
@@ -133,6 +162,7 @@ void cleanup_bink(WindowData& window_data)
 	{
 		BinkClose(window_data.video_data.bink_handler); // Close the Bink handler
 		window_data.video_data.bink_handler = nullptr;
+		window_data.video_data.lpDS->Release();
 	}
 	window_data.video_data.is_playing = false;
 	window_data.video_data.actual_framerate = 0.0f;

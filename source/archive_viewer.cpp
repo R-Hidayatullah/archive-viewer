@@ -38,6 +38,8 @@ int main() {
 		window_data.video_data.last_frametime = 0.0f;
 		window_data.video_data.first_frame = true;
 		window_data.video_data.is_playing = false;
+		window_data.video_data.lpDS = NULL;
+		window_data.video_data.volume = 100;
 
 		window_data.preview_tab_active = false;
 
