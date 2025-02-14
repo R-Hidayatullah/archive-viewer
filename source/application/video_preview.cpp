@@ -2,7 +2,7 @@
 
 
 
-void render_video(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data_ptr, size_t data_size)
+void render_video(WindowData& window_data, const uint8_t* data_ptr, size_t data_size)
 {
 
 
@@ -69,12 +69,23 @@ void render_video(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data
 			window_data.video_data.is_playing = false; // Start playing from the beginning
 		}
 	}
+	// Show tooltip when hovering over the "Reset" button
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::BeginTooltip();
+		ImGui::Text("Resets the video playback to the first frame.");
+		ImGui::EndTooltip();
+	}
 
 	ImGui::SameLine(); // Puts the next button on the same row
 
 	if (ImGui::Button(window_data.video_data.is_playing ? "Pause" : "Play"))
 	{
 		window_data.video_data.is_playing = !window_data.video_data.is_playing;
+	}
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip("Click to toggle Play/Pause.");
 	}
 
 

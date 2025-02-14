@@ -57,7 +57,7 @@ void create_and_display_texture(const void* image_data_ptr, WindowData& window_d
 
 		glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat,
 			texWidth, texHeight, 0,
-			window_data.binary_data.decompressed_image.size(), image_data_ptr);
+			(GLsizei)window_data.binary_data.decompressed_image.size(), image_data_ptr);
 	}
 	else // Uncompressed formats (RGB, RGBA, Grayscale)
 	{
@@ -95,7 +95,7 @@ void create_and_display_texture(const void* image_data_ptr, WindowData& window_d
 	ImGui::Image((ImTextureID)window_data.image_data.texture_id, ImVec2(displayWidth, displayHeight));
 }
 
-void display_image_png(Gw2Dat& data_gw2, WindowData& window_data)
+void display_image_png(WindowData& window_data)
 {
 	png_image image; // Structure to hold PNG image data
 	memset(&image, 0, sizeof(image));
@@ -118,8 +118,8 @@ void display_image_png(Gw2Dat& data_gw2, WindowData& window_data)
 		return;
 	}
 
-	window_data.image_data.image_width = image.width;
-	window_data.image_data.image_height = image.height;
+	window_data.image_data.image_width = (int)image.width;
+	window_data.image_data.image_height = (int)image.height;
 	window_data.image_data.image_channel = 4; // RGBA
 	window_data.image_data.anet_image = false;
 	window_data.image_data.format_data = 0;
@@ -130,9 +130,9 @@ void display_image_png(Gw2Dat& data_gw2, WindowData& window_data)
 	png_image_free(&image); // Free image resources
 }
 
-void display_image_jpeg(Gw2Dat& data_gw2, WindowData& window_data)
+void display_image_jpeg(WindowData& window_data)
 {
-	jpeg_decompress_struct cinfo;
+	jpeg_decompress_struct cinfo{};
 	jpeg_error_mgr jerr;
 
 	cinfo.err = jpeg_std_error(&jerr);
@@ -149,9 +149,9 @@ void display_image_jpeg(Gw2Dat& data_gw2, WindowData& window_data)
 
 	jpeg_start_decompress(&cinfo);
 
-	window_data.image_data.image_width = cinfo.output_width;
-	window_data.image_data.image_height = cinfo.output_height;
-	window_data.image_data.image_channel = cinfo.output_components;
+	window_data.image_data.image_width = (int)cinfo.output_width;
+	window_data.image_data.image_height = (int)cinfo.output_height;
+	window_data.image_data.image_channel = (int)cinfo.output_components;
 	window_data.image_data.anet_image = false;
 	window_data.image_data.format_data = 0;
 
@@ -170,7 +170,7 @@ void display_image_jpeg(Gw2Dat& data_gw2, WindowData& window_data)
 	create_and_display_texture(buffer.data(), window_data);
 }
 
-void display_image_webp(Gw2Dat& data_gw2, WindowData& window_data)
+void display_image_webp(WindowData& window_data)
 {
 	int width, height;
 	uint8_t* webp_data = WebPDecodeRGBA(window_data.binary_data.decompressed_data.data(), window_data.binary_data.decompressed_data.size(), &width, &height);
@@ -192,14 +192,14 @@ void display_image_webp(Gw2Dat& data_gw2, WindowData& window_data)
 	}
 }
 
-void display_image_dds(Gw2Dat& data_gw2, WindowData& window_data) {
+void display_image_dds(WindowData& window_data) {
 	DirectX::ScratchImage scratch_image;
 	HRESULT hr = DirectX::LoadFromDDSMemory(window_data.binary_data.decompressed_data.data(), window_data.binary_data.decompressed_data.size(), DirectX::DDS_FLAGS_NONE, nullptr, scratch_image);
 
 	if (SUCCEEDED(hr)) {
 		const DirectX::Image* img = scratch_image.GetImage(0, 0, 0);
-		window_data.image_data.image_width = img->width;
-		window_data.image_data.image_height = img->height;
+		window_data.image_data.image_width = (int)img->width;
+		window_data.image_data.image_height = (int)img->height;
 		window_data.image_data.image_channel = 4; // DDS textures are typically RGBA
 		window_data.image_data.anet_image = false;
 		window_data.image_data.format_data = 0;
@@ -211,7 +211,7 @@ void display_image_dds(Gw2Dat& data_gw2, WindowData& window_data) {
 	}
 }
 
-void display_image_atex(Gw2Dat& data_gw2, WindowData& window_data) {
+void display_image_atex(WindowData& window_data) {
 
 	window_data.image_data.image_width = window_data.anet_image.width;
 	window_data.image_data.image_height = window_data.anet_image.height;
@@ -224,31 +224,31 @@ void display_image_atex(Gw2Dat& data_gw2, WindowData& window_data) {
 
 }
 
-void render_image(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data_ptr, size_t data_size)
+void render_image(WindowData& window_data, const uint8_t* data_ptr, size_t data_size)
 {
 
 
 	if (valid_png(data_ptr, data_size))
 	{
-		display_image_png(data_gw2, window_data);
+		display_image_png(window_data);
 	}
 	else if (valid_jpeg(data_ptr, data_size)) {
-		display_image_jpeg(data_gw2, window_data);
+		display_image_jpeg(window_data);
 	}
 	else if (valid_webp(data_ptr, data_size))
 	{
-		display_image_webp(data_gw2, window_data);
+		display_image_webp(window_data);
 	}
 	else if (valid_dds(data_ptr, data_size)) {
-		display_image_dds(data_gw2, window_data);
+		display_image_dds(window_data);
 	}
 	else if (valid_atex(data_ptr, data_size) || valid_ateu(data_ptr, data_size) || valid_atep(data_ptr, data_size))
 	{
-		display_image_atex(data_gw2, window_data);
+		display_image_atex(window_data);
 	}
 	//else if (valid_ctex(data_ptr, data_size))
 	//{
-	//	display_image_atex(data_gw2, window_data);
+	//	display_image_atex( window_data);
 	//}
 	else
 	{

@@ -56,6 +56,8 @@ link_directories(
     external/bink2/lib
 )
 
+#add_compile_options(-Wall)
+
 set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
 
 # Add source to this project's executable.

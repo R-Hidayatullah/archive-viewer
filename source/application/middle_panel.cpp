@@ -46,11 +46,11 @@ void render_preview_tab(Gw2Dat& data_gw2, WindowData& window_data) {
 	size_t data_size = window_data.binary_data.decompressed_data.size();
 	if (check_valid_image(data_ptr, data_size))
 	{
-		render_image(data_gw2, window_data, data_ptr, data_size);
+		render_image(window_data, data_ptr, data_size);
 	}
 	else if (valid_bink2(data_ptr, data_size))
 	{
-		render_video(data_gw2, window_data, data_ptr, data_size);
+		render_video(window_data, data_ptr, data_size);
 	}
 	else if (valid_pf_modl(data_ptr, data_size))
 	{

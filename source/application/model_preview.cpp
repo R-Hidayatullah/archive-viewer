@@ -61,7 +61,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	if (temp_render_data.preview_tab_active) {
-		temp_render_data.zoom -= yoffset * 0.5f;
+		temp_render_data.zoom -= (float)yoffset * 0.5f;
 		if (temp_render_data.zoom < 1.0f) temp_render_data.zoom = 1.0f;
 		if (temp_render_data.zoom > 10.0f) temp_render_data.zoom = 10.0f;
 	}

@@ -4,7 +4,6 @@
 #include "archive_viewer.h"
 #include "application.h"
 
-
 int main() {
 	try {
 		Gw2Dat gw2_dat_file{};

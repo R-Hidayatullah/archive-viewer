@@ -67,7 +67,7 @@ struct VideoData {
 struct RenderData {
 	float rotation_x = 0.0f;
 	float rotation_y = 0.0f;
-	float zoom = 1.0f;
+	float zoom = 10.0f;
 	bool is_dragging = false;
 	double last_x = 0.0;
 	double last_y = 0.0;
@@ -164,13 +164,13 @@ bool valid_bink2(const uint8_t* data_ptr, size_t data_size);
 bool check_valid_image(const uint8_t* data_ptr, size_t data_size);
 void check_image_channel(WindowData& window_data);
 void create_and_display_texture(const void* image_data_ptr, WindowData& window_data);
-void display_image_png(Gw2Dat& data_gw2, WindowData& window_data);
-void display_image_jpeg(Gw2Dat& data_gw2, WindowData& window_data);
-void display_image_webp(Gw2Dat& data_gw2, WindowData& window_data);
-void display_image_dds(Gw2Dat& data_gw2, WindowData& window_data);
-void display_image_ATEX(Gw2Dat& data_gw2, WindowData& window_data);
-void render_image(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data_ptr, size_t data_size);
-void render_video(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data_ptr, size_t data_size);
+void display_image_png(WindowData& window_data);
+void display_image_jpeg(WindowData& window_data);
+void display_image_webp(WindowData& window_data);
+void display_image_dds(WindowData& window_data);
+void display_image_atex(WindowData& window_data);
+void render_image(WindowData& window_data, const uint8_t* data_ptr, size_t data_size);
+void render_video(WindowData& window_data, const uint8_t* data_ptr, size_t data_size);
 void render_model(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data_ptr, size_t data_size);
 void cleanup_bink(WindowData& window_data);
 void render_preview_tab(Gw2Dat& data_gw2, WindowData& window_data);
@@ -188,6 +188,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void setupFramebuffer(int width, int height);
-void render_model(Gw2Dat& data_gw2, WindowData& window_data);
+void render_model(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data_ptr, size_t data_size);
 
 #endif // !APPLICATION_H
