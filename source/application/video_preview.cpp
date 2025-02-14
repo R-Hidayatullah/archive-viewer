@@ -45,7 +45,16 @@ void render_video(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		}
 
-		ImGui::Text("Loaded Bink: %d width, %d height", window_data.video_data.bink_handler->Width, window_data.video_data.bink_handler->Height);
+		ImGui::Text("Loaded Bink: %d x %d @ %.2f FPS | Frames: %d/%d | Sound: %s",
+			window_data.video_data.bink_handler->Width,
+			window_data.video_data.bink_handler->Height,
+			(float)window_data.video_data.bink_handler->FrameRate / window_data.video_data.bink_handler->FrameRateDiv,
+			window_data.video_data.bink_handler->FrameNum,
+			window_data.video_data.bink_handler->Frames,
+			window_data.video_data.bink_handler->soundon ? "Enabled" : "Disabled"
+		);
+
+
 		// Volume control UI
 		ImGui::Text("Volume Control");
 		ImGui::SliderInt("Volume", &window_data.video_data.volume, 0, 100);
@@ -59,7 +68,7 @@ void render_video(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data
 				window_data.video_data.is_playing = false; // Start playing from the beginning
 			}
 		}
-		
+
 		// Play/Pause button
 		if (ImGui::Button(window_data.video_data.is_playing ? "Pause" : "Play"))
 		{
