@@ -11,7 +11,7 @@ int main() {
 		window_data.window_title = "Archive Viewer";
 
 
-		//if (!load_dat_file(gw2_dat_file, "C:\\Users\\Ridwan Hidayatullah\\source\\repos\\archive-viewer\\Local.dat")) {
+		//if (!load_dat_file(gw2_dat_file, "C:\\Users\\Ridwan Hidayatullah\\AppData\\Roaming\\Guild Wars 2\\Local.dat")) {
 		//	std::cerr << "Failed to load DAT file." << std::endl;
 		//	return 1; // Return non-zero to indicate an error
 		//}
