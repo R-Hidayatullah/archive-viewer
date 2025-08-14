@@ -108,6 +108,79 @@ void render_model(Gw2Dat& data_gw2, WindowData& window_data, const uint8_t* data
 
 	temp_render_data.preview_tab_active = window_data.preview_tab_active;
 
+	// Read the decompressed data buffer once
+	if (window_data.dat_data.selected_base_id != window_data.dat_data.last_selected_item_decompressed)
+	{
+		if (data_gw2.mft_data_list[window_data.dat_data.selected_base_id - 1].compression_flag != 0)
+		{
+			window_data.binary_data.decompressed_data = extract_decompressed_data(data_gw2, window_data.dat_data.selected_base_id - 1);
+			data_gw2.mft_data_list[window_data.dat_data.selected_base_id - 1].uncompressed_size = window_data.binary_data.decompressed_data.size();
+		}
+		else
+		{
+			window_data.binary_data.decompressed_data = remove_crc32c_data(data_gw2, window_data.dat_data.selected_base_id - 1);
+			data_gw2.mft_data_list[window_data.dat_data.selected_base_id - 1].uncompressed_size = window_data.binary_data.decompressed_data.size();
+		}
+		window_data.dat_data.last_selected_item_decompressed = window_data.dat_data.selected_base_id;
+		std::cout << "Parsing PF data!\n";
+
+
+	}
+
+	if (window_data.chunk_data_model.found)
+	{
+		MemReader reader(window_data.binary_data.decompressed_data);
+
+		HeaderDat header;
+		if (!readStruct(reader, header)) return;
+
+		// Only need the first GEOM chunk
+
+		while (reader.size > 0) {
+			ChunkData chunk;
+			if (!readChunk(reader, chunk)) break;
+
+			// Check if this chunk is GEOM
+			if (std::memcmp(chunk.header.magic, "GEOM", 4) == 0) {
+				window_data.chunk_data_model.geom_chunk = chunk; // save the chunk
+				window_data.chunk_data_model.found = true;
+				break;             // stop after first GEOM chunk
+			}
+		}
+
+		if (!window_data.chunk_data_model.found) {
+			std::cerr << "No GEOM chunk found!\n";
+			return;
+		}
+
+		if (window_data.chunk_data_model.found) {
+			ChunkData& geom = window_data.chunk_data_model.geom_chunk;
+
+			// Print chunk header info
+			std::cout << "Found GEOM chunk!\n";
+			std::cout << "Magic: "
+				<< geom.header.magic[0] << geom.header.magic[1]
+				<< geom.header.magic[2] << geom.header.magic[3] << "\n";
+			std::cout << "Chunk size: " << geom.header.chunkSize << "\n";
+			std::cout << "Version: " << geom.header.version << "\n";
+			std::cout << "Header size: " << geom.header.headerSize << "\n";
+			std::cout << "Offset table offset: " << geom.header.offsetToOffsetTable << "\n";
+
+			// Print sizes of contained buffers
+			std::cout << "Data size: " << geom.data.size() << "\n";
+			std::cout << "Offsets count: " << geom.offsets.size() << "\n";
+			std::cout << "Unknown size: " << geom.unknown.size() << "\n";
+
+			// Optional: print first few bytes of data as hex
+			std::cout << "First 16 bytes of data: ";
+			for (size_t i = 0; i < geom.data.size() && i < 16; ++i) {
+				printf("%02X ", geom.data[i]);
+			}
+			std::cout << "\n";
+		}
+
+	}
+
 	// Get panel size
 	ImVec2 previewSize = ImGui::GetContentRegionAvail();
 	int width = static_cast<int>(previewSize.x);

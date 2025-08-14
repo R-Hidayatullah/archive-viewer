@@ -96,6 +96,11 @@ struct DatData {
 	uint64_t last_selected_image_decompressed = 0;
 };
 
+struct ChunkDataModel {
+	bool found = false;
+	ChunkData geom_chunk;
+};
+
 struct WindowData {
 	GLFWwindow* window = nullptr;
 	std::string window_title = "Default Window";
@@ -106,6 +111,7 @@ struct WindowData {
 	BinaryData binary_data = {};
 	bool preview_tab_active = false;
 	gw2dt::compression::AnetImage anet_image = {};
+	ChunkDataModel chunk_data_model;
 };
 
 const std::string vertexShaderSource = R"(

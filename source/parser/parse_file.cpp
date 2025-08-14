@@ -226,4 +226,46 @@ bool load_dat_file(Gw2Dat& data_gw2, const std::string& file_path) {
 	}
 }
 
+// Read chunk from memory
+bool readChunk(MemReader& reader, ChunkData& chunk) {
+	if (!readStruct(reader, chunk.header))
+		return false;
 
+	if (chunk.header.offsetToOffsetTable != 0) {
+		if (reader.size < chunk.header.offsetToOffsetTable + 4) return false;
+
+		chunk.data.resize(chunk.header.offsetToOffsetTable);
+		std::memcpy(chunk.data.data(), reader.ptr, chunk.data.size());
+		reader.ptr += chunk.data.size();
+		reader.size -= chunk.data.size();
+
+		uint32_t nbOfOffsets = 0;
+		std::memcpy(&nbOfOffsets, reader.ptr, 4);
+		reader.ptr += 4;
+		reader.size -= 4;
+
+		if (reader.size < nbOfOffsets * 4) return false;
+		chunk.offsets.resize(nbOfOffsets);
+		std::memcpy(chunk.offsets.data(), reader.ptr, nbOfOffsets * 4);
+		reader.ptr += nbOfOffsets * 4;
+		reader.size -= nbOfOffsets * 4;
+
+		size_t remaining = chunk.header.chunkSize - 8 - chunk.header.offsetToOffsetTable - 4 - (nbOfOffsets * 4);
+		if (remaining > 0 && reader.size >= remaining) {
+			chunk.unknown.resize(remaining);
+			std::memcpy(chunk.unknown.data(), reader.ptr, remaining);
+			reader.ptr += remaining;
+			reader.size -= remaining;
+		}
+	}
+	else {
+		size_t dataSize = chunk.header.chunkSize - 8;
+		if (reader.size < dataSize) return false;
+		chunk.data.resize(dataSize);
+		std::memcpy(chunk.data.data(), reader.ptr, dataSize);
+		reader.ptr += dataSize;
+		reader.size -= dataSize;
+	}
+
+	return true;
+}

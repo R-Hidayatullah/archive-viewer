@@ -10,6 +10,9 @@
 #include <iomanip>
 #include <algorithm>
 #include <unordered_map>
+#include <cstdint>
+#include <cstring>
+
 
 #include "gw2dattools/inflateDatFileBuffer.h"
 #include "gw2dattools/inflateTextureFileBuffer.h"
@@ -100,6 +103,54 @@ void read_from_file(std::ifstream& file, T(&array)[N]) {
 	}
 }
 
+
+#pragma pack(push, 1)
+struct HeaderDat {
+    char magic[2];
+    uint16_t version;
+    uint16_t zero;
+    uint16_t headerSize;
+    char type[4];
+};
+
+struct ChunkHeader {
+    char magic[4];
+    uint32_t chunkSize;
+    uint16_t version;
+    uint16_t headerSize;
+    uint32_t offsetToOffsetTable;
+};
+#pragma pack(pop)
+
+struct ChunkData {
+    ChunkHeader header;
+    std::vector<uint8_t> data;
+    std::vector<uint32_t> offsets;
+    std::vector<uint8_t> unknown;
+};
+
+// Helper struct to track reading position
+struct MemReader {
+    const uint8_t* ptr;
+    size_t size;
+
+    MemReader(std::vector<uint8_t>& buffer)
+        : ptr(buffer.data()), size(buffer.size()) {
+    }
+};
+
+// Read POD struct from memory
+template<typename T>
+bool readStruct(MemReader& reader, T& outStruct) {
+    if (reader.size < sizeof(T)) return false;
+    std::memcpy(&outStruct, reader.ptr, sizeof(T));
+    reader.ptr += sizeof(T);
+    reader.size -= sizeof(T);
+    return true;
+}
+
+// Read chunk from memory
+bool readChunk(MemReader& reader, ChunkData& chunk);
 bool parse_dat_header(Gw2Dat& data_gw2);
 void print_dat_header(Gw2Dat& data_gw2);
 bool parse_mft_header(Gw2Dat& data_gw2);
