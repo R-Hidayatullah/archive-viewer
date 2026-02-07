@@ -32,7 +32,7 @@ A lightweight tool for exploring and extracting data from Guild Wars 2 archives.
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/YourUsername/archive-viewer.git
+git clone https://github.com/R-Hidayatullah/archive-viewer.git
 cd archive-viewer
 ````
 
@@ -56,17 +56,6 @@ cmake --build . --config Release
 * Inspect metadata and export data from the **File Info** panel.
 * Use the search bar to locate files by **Base ID** or **File ID**.
 
----
-
-## Screenshots
-
-*(Add screenshots of the UI, hex viewer, and image/video preview here.)*
-
----
-
-## License
-
-Specify your license here (MIT, GPL, etc.).
 
 ---
 
