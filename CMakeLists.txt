@@ -11,7 +11,7 @@ endif()
 
 project ("archive-viewer")
 
-set(CMAKE_TOOLCHAIN_FILE "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
+set(CMAKE_TOOLCHAIN_FILE "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 11)
