@@ -31,7 +31,8 @@ find_package(PNG REQUIRED)
 find_package(WebP CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
-find_package(mpg123 CONFIG REQUIRED)
+find_path(MINIMP3_INCLUDE_DIRS "minimp3/minimp3.h")
+
 
 add_subdirectory(external/glad33compat)
 
@@ -86,6 +87,8 @@ add_executable (${PROJECT_NAME}
 # TODO: Add tests and install targets if needed.
 
 target_include_directories(${PROJECT_NAME} PRIVATE JPEG::JPEG)
+target_include_directories(${PROJECT_NAME} PRIVATE ${MINIMP3_INCLUDE_DIRS})
+
 
 # Link libraries to your executable
 target_link_libraries(${PROJECT_NAME} 
@@ -103,5 +106,4 @@ target_link_libraries(${PROJECT_NAME}
     WebP::webp 
     WebP::webpdecoder 
     WebP::webpdemux
-    MPG123::libmpg123
 )
